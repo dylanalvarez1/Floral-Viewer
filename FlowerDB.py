@@ -31,7 +31,8 @@ class FlowerDB:
         self._cursor.execute('''
             SELECT * FROM SIGHTINGS
             WHERE NAME LIKE \'%''' + keyword + '''%\'
-            ORDER BY SIGHTED DESC''')
+            ORDER BY SIGHTED DESC LIMIT 10''')
+        #print(self._cursor.fetchall())
         return self._cursor.fetchall()
     
     def get_sightings(self, flower = None):

@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt 
 from PyQt5.QtGui import * 
+from FlowerDB import FlowerDB
 
 def set_dark_style(q_app):
     q_app.setStyle("Fusion")
@@ -34,6 +35,11 @@ class SubWindow(QMainWindow):
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        self.db = None
+        self.results = None
+        self.result_label = "Results: "
+
+
         container = QWidget()
         buttons = QWidget()
         layout = QHBoxLayout()
@@ -85,7 +91,9 @@ class MainWindow(QMainWindow):
 
         results_container = QWidget()
         results_container.setStyleSheet('padding: 200px')
-        results_label = QLabel('Results:')
+        results_label = QLabel(self.result_label)
+        results_label.setObjectName('results')
+        
 
         f_layout.addWidget(buttons)
         f_layout.addWidget(results_label)
@@ -93,6 +101,9 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(container)
         self.show()
+
+    def set_db(self, db):
+        self.db = db
 
     def on_button_clicked_c(self):
         self.dialog_create.show()
@@ -102,13 +113,27 @@ class MainWindow(QMainWindow):
     def on_combobox_changed(self, value):
         print("Value: ", value)
     def on_text_change(self, value):
-        print("Current Text: ", value)
+        #self.results = self.db.get_flowers_by_keyword(value)
+        self.result_label = "Results: "
+        flower_str = ""
+        #Loop through the results and create a label for each flower
+        for flower in self.db.get_flowers_by_keyword(value):
+           flower_str += " %s (%s %s) \n" % (flower[2], flower[0], flower[1])
+        self.result_label += flower_str
+
+        #Find the old results
+        result_text = self.findChild(QLabel, "results")
+        result_text.setText(self.result_label)
+    
 
         
 
 if __name__ == "__main__":
-    qApp = QApplication([])
-    set_dark_style(qApp)
-    window = MainWindow()
-    qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
-    qApp.exec_()
+    flower_db = FlowerDB("test.db")
+    with flower_db:
+        qApp = QApplication([])
+        set_dark_style(qApp)
+        window = MainWindow()
+        window.set_db(flower_db)
+        qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
+        qApp.exec_()
