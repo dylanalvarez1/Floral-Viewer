@@ -32,6 +32,73 @@ class SubWindow(QMainWindow):
         super().__init__(parent)
 
 
+class DialogCreate():
+    def __init__(self, window):
+        self.window = window
+        container = QWidget()
+        container_layout = QVBoxLayout()
+        top_row = QWidget()
+        top_row_layout = QHBoxLayout()
+        label = QLabel('Create a new')
+        self.combo_box = QComboBox()
+        self.combo_box.addItem('Sighting')
+        self.combo_box.addItem('Flower')
+        self.combo_box.addItem('Feature')
+        self.combo_box.currentTextChanged.connect(self.update)
+        top_row_layout.addWidget(label)
+        top_row_layout.addWidget(self.combo_box)
+        top_row.setLayout(top_row_layout)
+
+        form_row = QWidget()
+        self.form_row_layout = QFormLayout()
+        self.fields = []
+        form_row.setLayout(self.form_row_layout)
+
+        self.insert_button = QPushButton("Insert")
+        container_layout.addWidget(top_row)
+        container_layout.addWidget(form_row)
+        container_layout.addWidget(self.insert_button)
+        container.setLayout(container_layout)
+        self.window.setCentralWidget(container)
+        self.state = "Sighting"
+
+    def set_form(self, *label_names):
+        while len(self.form_row_layout) > 0:
+            self.form_row_layout.removeRow(0)
+        self.fields = []
+        for label_name in label_names:
+            label = QLabel(label_name)
+            field = QLineEdit()
+            self.fields.append(field)
+            self.form_row_layout.addRow(label, field)
+        
+    def update(self):
+        self.state = self.combo_box.currentText()
+        if self.state == "Flower":
+            self.set_form("Genus", "Species", "Common Name")
+        elif self.state == "Feature":
+            self.set_form("Location", "Class", "Latitude", "Longitude", "Map", "Elev")
+        elif self.state == "Sighting":
+            self.set_form("Name", "Person", "Location", "Sighted")
+        else:
+            raise Exception("Unrecognized state:\n%s" % repr(self.state))
+        self.show()
+    
+    def insert():
+        if self.state == "Flower":
+            # insert into flowers sheet, sanitize where appropriate
+            pass
+        elif self.state == "Feature":
+            # insert into features sheet, sanitize where appropriate
+            pass
+        elif self.state == "Sighting":
+            # insert into sighting sheet, sanitize where appropriate
+            pass
+
+    def show(self):
+        self.window.show()
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -63,26 +130,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(c_button)
         layout.addWidget(u_button)
         #=====
-        self.dialog_create = SubWindow(self)
+        self.dialog_create = DialogCreate(SubWindow(self))
         self.dialog_update = SubWindow(self)
-        container_create = QWidget()
-        form = QHBoxLayout()
-
-        label = QLabel('Create New ')
-
-        input1 = QComboBox()
-        input1.addItem('Flowers')
-        input1.addItem('Sightings')
-        input1.addItem('Features')
-
-        input1.currentTextChanged.connect(self.on_combobox_changed)
-
-        ok_button = QPushButton('ok')
-
-        form.addWidget(label)
-        form.addWidget(input1)    
-        container_create.setLayout(form)
-        self.dialog_create.setCentralWidget(container_create)
+        
         #=====
         f_layout = QVBoxLayout()
 
