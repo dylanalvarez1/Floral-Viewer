@@ -48,6 +48,10 @@ class MainWindow(QMainWindow):
 
         label = QLabel("Search")
         query = QLineEdit()
+
+        query.textChanged.connect(self.on_text_change)
+
+
         layout.addWidget(label)
         layout.addWidget(query)
         layout.addWidget(c_button)
@@ -97,6 +101,8 @@ class MainWindow(QMainWindow):
         self.dialog_update.show()
     def on_combobox_changed(self, value):
         print("Value: ", value)
+    def on_text_change(self, value):
+        print("Current Text: ", value)
 
         
 
