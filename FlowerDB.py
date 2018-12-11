@@ -26,14 +26,32 @@ class FlowerDB:
             ORDER BY COMNAME;''')
         return self._cursor.fetchall()
 
-    def get_flowers_by_keyword(self, keyword):
+    def get_sightings_by_keyword(self, keyword):
         '''Returns a list of flowers filtered by keyword'''
         self._cursor.execute('''
             SELECT * FROM SIGHTINGS
             WHERE NAME LIKE \'%''' + keyword + '''%\'
             ORDER BY SIGHTED DESC LIMIT 10''')
-        #print(self._cursor.fetchall())
+        
         return self._cursor.fetchall()
+
+    def get_flowers_by_keyword(self, keyword):
+        '''Returns a list of flowers filtered by keyword'''
+        self._cursor.execute('''
+            SELECT * FROM SIGHTINGS
+            WHERE COMNAME LIKE \'%''' + keyword + '''%\'
+            ORDER BY SIGHTED DESC LIMIT 10''')
+        
+        return self._cursor.fetchall()
+
+    def get_features_by_keyword(self, keyword):
+        '''Returns a list of flowers filtered by keyword'''
+        self._cursor.execute('''
+            SELECT * FROM FEATURES
+            WHERE LOCATION LIKE \'%''' + keyword + '''%\'
+            ORDER BY SIGHTED DESC LIMIT 10''')
+        
+        return self._cursor.fetchall()    
     
     def get_sightings(self, flower = None):
         if flower is None:
