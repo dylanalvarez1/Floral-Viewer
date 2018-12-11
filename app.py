@@ -38,17 +38,11 @@ def on_button_clicked_u():
 
 
 window = QWidget()
+buttons = QWidget()
 layout = QHBoxLayout()
 
 c_button = QPushButton('New')
 u_button = QPushButton('Update')
-
-search_area = QWidget()
-
-search_query, ok_pressed = QInputDialog.getText(search_area, "Get text","Search for flowers:", QLineEdit.Normal, "")
-if ok_pressed:
-    print(search_query)
-
 
 c_button.setStyleSheet('padding: 5px')
 
@@ -57,7 +51,17 @@ u_button.clicked.connect(on_button_clicked_u)
 
 layout.addWidget(c_button)
 layout.addWidget(u_button)
-window.setLayout(layout)
+
+f_layout = QFormLayout()
+label = QLabel("Search")
+query = QLineEdit()
+
+f_layout.addRow(label, query)
+
+buttons.setLayout(layout)
+f_layout.addWidget(buttons)
+window.setLayout(f_layout)
+
 window.show()
 
 
