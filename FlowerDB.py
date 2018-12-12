@@ -39,8 +39,8 @@ class FlowerDB:
         '''Returns a list of flowers filtered by keyword'''
         self._cursor.execute('''
             SELECT * FROM SIGHTINGS
-            WHERE COMNAME LIKE \'%''' + keyword + '''%\'
-            ORDER BY SIGHTED DESC LIMIT 10''')
+            WHERE NAME LIKE \'%''' + keyword + '''%\'
+            ''')
         
         return self._cursor.fetchall()
 
@@ -49,7 +49,7 @@ class FlowerDB:
         self._cursor.execute('''
             SELECT * FROM FEATURES
             WHERE LOCATION LIKE \'%''' + keyword + '''%\'
-            ORDER BY SIGHTED DESC LIMIT 10''')
+            ''')
         
         return self._cursor.fetchall()    
     

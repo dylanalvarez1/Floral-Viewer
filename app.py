@@ -107,6 +107,7 @@ class MainWindow(QMainWindow):
         self.result_label = "Results: "
 
 
+
         container = QWidget()
         buttons = QWidget()
         layout = QHBoxLayout()
@@ -140,16 +141,26 @@ class MainWindow(QMainWindow):
         buttons.setLayout(layout)
 
         results_container = QWidget()
-        results_container.setStyleSheet('padding: 200px')
-        results_label = QLabel(self.result_label)
-        results_label.setObjectName('results')
+        results_container.setStyleSheet('padding: 50px')
+        self.results_table = QTableWidget()
+
+        # initiate table
+        self.results_table.setWindowTitle("Flowers")
+        self.results_table.resize(600, 600)
+        #results_table.horizontalHeader.hide()
+        self.results_table.setRowCount(10)
+        self.results_table.setColumnCount(3)
+        self.results_table.setHorizontalHeaderLabels(["GENUS", "SPECIES", "COMNAME"])
+
+        self.results_table.setObjectName('results')
         
 
         f_layout.addWidget(buttons)
-        f_layout.addWidget(results_label)
+        f_layout.addWidget(self.results_table)
         container.setLayout(f_layout)
 
         self.setCentralWidget(container)
+        self.setWindowTitle("Flower-Viewer")
         self.show()
 
     def set_db(self, db):
@@ -162,18 +173,21 @@ class MainWindow(QMainWindow):
         self.dialog_update.show()
     def on_combobox_changed(self, value):
         print("Value: ", value)
-    def on_text_change(self, value):
-        #self.results = self.db.get_flowers_by_keyword(value)
-        self.result_label = "Results: "
-        flower_str = ""
-        #Loop through the results and create a label for each flower
-        for flower in self.db.get_flowers_by_keyword(value):
-           flower_str += " %s (%s %s) \n" % (flower[2], flower[0], flower[1])
-        self.result_label += flower_str
 
-        #Find the old results
-        result_text = self.findChild(QLabel, "results")
-        result_text.setText(self.result_label)
+    def update_table(self, db_results):
+        for i, row in enumerate(db_results):
+            for j, item in enumerate(row): 
+                self.results_table.setItem(i, j, QTableWidgetItem(item))
+
+    def on_text_change(self, value):
+        
+        self.results_table.clearContents()
+
+        flowers = []
+
+        #Loop through the results and create a label for each flower
+        self.update_table(self.db.get_flowers_by_keyword(value))
+    
     
 
         
