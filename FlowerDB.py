@@ -25,34 +25,14 @@ class FlowerDB:
             SELECT * FROM FLOWERS 
             ORDER BY COMNAME;''')
         return self._cursor.fetchall()
-
-    def get_sightings_by_keyword(self, keyword):
-        '''Returns a list of flowers filtered by keyword'''
-        self._cursor.execute('''
-            SELECT * FROM SIGHTINGS
-            WHERE NAME LIKE \'%''' + keyword + '''%\'
-            ORDER BY SIGHTED DESC LIMIT 10''')
-        
-        return self._cursor.fetchall()
-
-    def get_flowers_by_keyword(self, keyword):
-        '''Returns a list of flowers filtered by keyword'''
-        self._cursor.execute('''
-            SELECT * FROM SIGHTINGS
-            WHERE NAME LIKE \'%''' + keyword + '''%\'
-            ''')
-        
-        return self._cursor.fetchall()
-
-    def get_features_by_keyword(self, keyword):
-        '''Returns a list of flowers filtered by keyword'''
-        self._cursor.execute('''
-            SELECT * FROM FEATURES
-            WHERE LOCATION LIKE \'%''' + keyword + '''%\'
-            ''')
-        
-        return self._cursor.fetchall()    
     
+    def get_location(self):
+        '''Returns a list of flowers'''
+        self._cursor.execute('''
+            SELECT LOCATION FROM FEATURES 
+            ORDER BY COMNAME;''')
+        return self._cursor.fetchall()
+
     def get_sightings(self, flower = None):
         if flower is None:
             self._cursor.execute('''
@@ -65,6 +45,30 @@ class FlowerDB:
                 ORDER BY SIGHTED DESC''', (flower,) )
         return self._cursor.fetchall()
 
+    def get_sightings_by_keyword(self, keyword):
+        '''Returns a list of sightings filtered by keyword'''
+        self._cursor.execute('''
+            SELECT * FROM SIGHTINGS
+            WHERE NAME LIKE ?
+            ORDER BY SIGHTED DESC''', ('%'+keyword+'%',))
+        return self._cursor.fetchall()
+
+    def get_flowers_by_keyword(self, keyword):
+        '''Returns a list of flowers filtered by keyword'''
+        self._cursor.execute('''
+            SELECT * FROM FLOWERS
+            WHERE COMNAME LIKE ?''', ('%'+keyword+'%',))
+        return self._cursor.fetchall()
+
+    def get_features_by_keyword(self, keyword):
+        '''Returns a list of flowers filtered by keyword'''
+        self._cursor.execute('''
+            SELECT * FROM FEATURES
+            WHERE LOCATION LIKE \'%''' + keyword + '''%\'
+            ORDER BY SIGHTED DESC''')
+        
+        return self._cursor.fetchall()    
+
     # TODO: check if comname is a valid file
     def update_flower(self, comname, genus, species):
         self._cursor.execute('''
@@ -73,12 +77,23 @@ class FlowerDB:
             WHERE COMNAME = ?
             ''', (genus, species, comname)) 
     
-    # TODO: add other updates
     def add_sighting(self, name, person, location, sighted):
         self._cursor.execute('''
         INSERT INTO SIGHTINGS
         VALUES(?, ?, ?, ?);
         ''', (name, person, location, sighted))
+    
+    def add_flower(self, comname, genus, species):
+        self._cursor.execute('''
+        INSERT INTO FLOWERS
+        VALUES(?, ?, ?);
+        ''', (genus, species, comname))
+    
+    def add_feature(self, location, loc_class, latitude, longitude, loc_map, elev):
+        self._cursor.execute('''
+        INSERT INTO FEATURES
+        VALUES(?, ?, ?, ?, ?, ?);
+        ''', (self, location, loc_class, latitude, longitude, loc_map, elev))
         
 
 
