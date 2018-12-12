@@ -101,22 +101,24 @@ class DialogCreate():
         self.window.show()
 
 class DialogUpdate():
-    def __init__(self, window, db):
+    def __init__(self, window, db, item, choice):
         self.window = window
         self.db = db
+        self.item = item
+        self.choice = choice
 
         container = QWidget()
         container_layout = QVBoxLayout()
         top_row = QWidget()
         top_row_layout = QHBoxLayout()
-        label = QLabel('Create a new')
-        self.combo_box = QComboBox()
+        label = QLabel('Update entry: ' + self.item.text())
+        """ self.combo_box = QComboBox()
         self.combo_box.addItem('Sighting')
         self.combo_box.addItem('Flower')
-        self.combo_box.addItem('Feature')
-        self.combo_box.currentTextChanged.connect(self.update)
+        self.combo_box.addItem('Feature') """
+        """ self.combo_box.currentTextChanged.connect(self.update) """
         top_row_layout.addWidget(label)
-        top_row_layout.addWidget(self.combo_box)
+        """ top_row_layout.addWidget(self.combo_box) """
         top_row.setLayout(top_row_layout)
 
         form_row = QWidget()
@@ -124,8 +126,8 @@ class DialogUpdate():
         self.fields = []
         form_row.setLayout(self.form_row_layout)
 
-        self.insert_button = QPushButton("Insert")
-        self.insert_button.clicked.connect(self.insert)
+        self.insert_button = QPushButton("Update")
+        self.insert_button.clicked.connect(self.update_clicked)
         container_layout.addWidget(top_row)
         container_layout.addWidget(form_row)
         container_layout.addWidget(self.insert_button)
@@ -133,8 +135,8 @@ class DialogUpdate():
         self.window.setCentralWidget(container)
 
         #setting up the default initial values
-        self.state = "Sighting"
-        self.set_form("Name", "Person", "Location", "Sighted")
+        self.state = self.choice
+        self.select_form()
 
 
     def set_form(self, *label_names):
@@ -147,8 +149,9 @@ class DialogUpdate():
             self.fields.append(field)
             self.form_row_layout.addRow(label, field)
         
-    def update(self):
-        self.state = self.combo_box.currentText()
+    def select_form(self):
+        self.state = self.choice
+        print('State:', self.choice)
         if self.state == "Flower":
             self.set_form("Genus", "Species", "Common Name")
         elif self.state == "Feature":
@@ -158,7 +161,7 @@ class DialogUpdate():
         else:
             raise Exception("Unrecognized state:\n%s" % repr(self.state))
     
-    def insert(self):
+    def update_clicked(self):
         # getting the values in each field
         values = [field.text() for field in self.fields]
         if self.state == "Flower":
@@ -214,10 +217,8 @@ class Sheet:
         self.cell_c = column
         item = self.table.item(row, column)
         print(item.text())
+        self.parent.create_update_dialog(item)
         self.parent.dialog_update.show()
-        
-        
-
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -263,7 +264,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(c_button)        
 
         self.dialog_create = DialogCreate(SubWindow(self), self.db)
-        self.dialog_update = DialogUpdate(SubWindow(self), self.db)
+       
         
         f_layout = QVBoxLayout()
 
@@ -327,6 +328,18 @@ class MainWindow(QMainWindow):
             self.result_size = int(value)
             print('value:', value)
             self.do_sheet_update()
+    
+    def getChoice(self, x):
+        return {
+            0 : "Sighting",
+            1 : "Flower",
+            2 : "Feature"
+        }.get(x, "Sighting")
+
+    def create_update_dialog(self, item):
+        choice = self.getChoice(self.tabs.currentIndex())
+        print('choice:', choice)
+        self.dialog_update = DialogUpdate(SubWindow(self), self.db, item, choice)
 
     def do_sheet_update(self):
         # getting current index
