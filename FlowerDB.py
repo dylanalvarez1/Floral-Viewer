@@ -80,16 +80,28 @@ class FlowerDB:
         
         return self._cursor.fetchall()    
 
-    # TODO: check if comname is a valid file
+    # TODO: error checking
     # UPDATE FUNCTIONS
-    def update_flower(self, genus, species, comname):
+    def update_flowers(self, old_row, new_row):
         self._cursor.execute('''
             UPDATE FLOWERS
-            SET GENUS = ?, SPECIES = ?
-            WHERE COMNAME = ?
-            ''', (genus, species, comname)) 
-    
+            SET GENUS = ?, SPECIES = ?, COMNAME = ?
+            WHERE GENUS = ? AND SPECIES = ? and COMNAME = ?
+            ''', old_row + new_row)
 
+    def update_features(self, old_row, new_row):
+        self._cursor.execute('''
+            UPDATE FEATURES
+            SET LOCATION = ?, CLASS = ?, LATITUDE = ?, LONGITUDE = ?, MAP = ?, ELEV = ?
+            WHERE LOCATION = ? AND CLASS = ? AND LATITUDE = ? AND LONGITUDE = ? AND MAP = ? AND ELEV = ?
+            ''', old_row + new_row)
+    
+    def update_sightings(self, old_row, new_row):
+        self._cursor.execute('''
+            UPDATE SIGHTINGS
+            SET NAME = ?, PERSON =?, LOCATION = ?, SIGHTED = ?
+            WHERE NAME = ? AND PERSON = ? AND LOCATION = ? AND SIGHTED = ?
+            ''', old_row + new_row)
 
 
     # INSERT FUNCTIONS

@@ -130,10 +130,7 @@ class DialogUpdate:
         container_layout.addWidget(self.update_button)
         container.setLayout(container_layout)
         self.window.setCentralWidget(container)
-
-        #setting up the default initial values
-        self.state = "Sighting"
-        self.set_form("Name", "Person", "Location", "Sighted")
+        self.build_form()
 
     
     def set_form(self, *label_names):
@@ -153,23 +150,26 @@ class DialogUpdate:
             self.form_row_layout.addRow(label, field)
     
     def build_form(self):
-        if self.state == "Flower":
+        if self.type == "Flower":
             self.set_form("Genus", "Species", "Common Name")
-        elif self.state == "Feature":
+        elif self.type == "Feature":
             self.set_form("Location", "Class", "Latitude", "Longitude", "Map", "Elev")
-        elif self.state == "Sighting":
+        elif self.type == "Sighting":
             self.set_form("Name", "Person", "Location", "Sighted")
         else:
-            raise Exception("Unrecognized state:\n%s" % repr(self.state))
+            raise Exception("Unrecognized state:\n%s" % repr(self.type))
     
     def update_pressed(self):
-        values = [field.text() for field in self.fields]
-        if self.state == "Flower":
-            self.db.add_flower(values, self.editable_col)
-        elif self.state == "Feature":
-            self.db.add_feature(values, self.editable_col)
-        elif self.state == "Sighting":
-            self.db.add_sighting(values, self.editable_col)
+        print("update pressed")
+        new_values = [field.text() for field in self.fields]
+        if self.type == "Flower":
+            self.db.update_flowers(self.item_row, new_values)
+        elif self.type == "Feature":
+            self.db.update_features(self.item_row, new_values)
+        elif self.type == "Sighting":
+            self.db.update_sightings(self.item_row, new_values)
+        else:
+            raise Exception("Unrecognized state:\n%s" % repr(self.type))
         self.window.close()
 
 class Sheet:
@@ -213,7 +213,7 @@ class Sheet:
         self.cell_r = row+1
         self.cell_c = column
         item = self.table.item(row, column)
-        item_row = [self.table.item(i, self.cell_c).text() for i in range(self.table.columnCount())]
+        item_row = [self.table.item(self.cell_r - 1, i).text() for i in range(self.table.columnCount())]
         print(item.text())
         print(item_row)
         # the self.title is the worst way to store the state... using an enum would be better
