@@ -7,6 +7,7 @@ class FlowerDB:
         assert os.path.exists(filename)
         self.filename = filename
     
+    #CONTEXT MANAGEMENT FUNCTIONS
     def __enter__(self):
         '''Establishes a connection upon entry'''
         self._connection = sqlite3.connect(self.filename)
@@ -19,20 +20,25 @@ class FlowerDB:
             self._connection.commit()
         self._connection.close()
     
-    def get_flowers(self):
+
+    # UTILITY FUNCTIONS
+    def get_common_names(self):
         '''Returns a list of flowers'''
         self._cursor.execute('''
             SELECT * FROM FLOWERS 
             ORDER BY COMNAME;''')
         return self._cursor.fetchall()
     
-    def get_location(self):
-        '''Returns a list of flowers'''
+    def get_location_names(self):
+        '''Returns a list of locations'''
         self._cursor.execute('''
             SELECT LOCATION FROM FEATURES 
-            ORDER BY COMNAME;''')
+            ORDER BY LOCATION;''')
         return self._cursor.fetchall()
 
+
+    #QUERY FUNCTIONS
+    #POSSIBLY OBSOLETE   
     def get_sightings(self, flower = None):
         if flower is None:
             self._cursor.execute('''
@@ -47,6 +53,8 @@ class FlowerDB:
 
     def get_sightings_by_keyword(self, keyword):
         '''Returns a list of sightings filtered by keyword'''
+        #if keyword is None:
+            #return self.get_sightings()
         self._cursor.execute('''
             SELECT * FROM SIGHTINGS
             WHERE NAME LIKE ?
@@ -55,6 +63,8 @@ class FlowerDB:
 
     def get_flowers_by_keyword(self, keyword):
         '''Returns a list of flowers filtered by keyword'''
+        #if keyword is None:
+            #return self.get_flowers()
         self._cursor.execute('''
             SELECT * FROM FLOWERS
             WHERE COMNAME LIKE ?''', ('%'+keyword+'%',))
@@ -62,21 +72,42 @@ class FlowerDB:
 
     def get_features_by_keyword(self, keyword):
         '''Returns a list of flowers filtered by keyword'''
+        #if keyword is None:
+            #return self.get_location()
         self._cursor.execute('''
             SELECT * FROM FEATURES
-            WHERE LOCATION LIKE \'%''' + keyword + '''%\'
-            ORDER BY SIGHTED DESC''')
+            WHERE LOCATION LIKE ?''',  ("%"+keyword+"%",))
         
         return self._cursor.fetchall()    
 
-    # TODO: check if comname is a valid file
-    def update_flower(self, comname, genus, species):
+    # TODO: error checking
+    # UPDATE FUNCTIONS
+    def update_flowers(self, old_row, new_row):
+        print(old_row)
+        print(new_row)
         self._cursor.execute('''
             UPDATE FLOWERS
-            SET GENUS = ?, SPECIES = ?
-            WHERE COMNAME = ?
-            ''', (genus, species, comname)) 
+            SET GENUS = ?, SPECIES = ?, COMNAME = ?
+            WHERE GENUS = ? AND SPECIES = ? and COMNAME = ?
+            ''', new_row + old_row)
+
+    def update_features(self, old_row, new_row):
+        self._cursor.execute('''
+            UPDATE FEATURES
+            SET LOCATION = ?, CLASS = ?, LATITUDE = ?, LONGITUDE = ?, MAP = ?, ELEV = ?
+            WHERE LOCATION = ? AND CLASS = ? AND LATITUDE = ? AND LONGITUDE = ? AND MAP = ? AND ELEV = ?
+            ''', new_row + old_row)
     
+    def update_sightings(self, old_row, new_row):
+        self._cursor.execute('''
+            UPDATE SIGHTINGS
+            SET NAME = ?, PERSON =?, LOCATION = ?, SIGHTED = ?
+            WHERE NAME = ? AND PERSON = ? AND LOCATION = ? AND SIGHTED = ?
+            ''', new_row + old_row)
+
+
+    # INSERT FUNCTIONS
+    # TODO: ADD ERROR CHECKING
     def add_sighting(self, name, person, location, sighted):
         self._cursor.execute('''
         INSERT INTO SIGHTINGS
@@ -100,6 +131,5 @@ class FlowerDB:
 if __name__ == "__main__":
     flower_db = FlowerDB("test.db")
     with flower_db:
-        for flower in flower_db.get_flowers_by_keyword(input()):
-            print("%s (%s %s)" % (flower[2], flower[0], flower[1]) )
+        flower_db.update_flower("Sheltons violet", "ViolaNew", "sheltoniiNew")
         
