@@ -100,76 +100,6 @@ class DialogCreate():
     def show(self):
         self.window.show()
 
-class DialogUpdate():
-    def __init__(self, window, db, item, choice, parent):
-        self.window = window
-        self.window.setWindowTitle("Create new entry")
-        self.db = db
-        self.item = item
-        self.choice = choice
-        self.parent = parent
-
-        container = QWidget()
-        container_layout = QVBoxLayout()
-        top_row = QWidget()
-        top_row_layout = QHBoxLayout()
-        label = QLabel('Update entry: ' + self.item.text())
-        top_row_layout.addWidget(label)
-        top_row.setLayout(top_row_layout)
-
-        form_row = QWidget()
-        self.form_row_layout = QFormLayout()
-        self.fields = []
-        form_row.setLayout(self.form_row_layout)
-
-        self.insert_button = QPushButton("Update")
-        self.insert_button.clicked.connect(self.update_clicked)
-        container_layout.addWidget(top_row)
-        container_layout.addWidget(form_row)
-        container_layout.addWidget(self.insert_button)
-        container.setLayout(container_layout)
-        self.window.setCentralWidget(container)
-
-        #setting up the default initial values
-        self.state = self.choice
-        self.select_form()
-
-
-    def set_form(self, *label_names):
-        while len(self.form_row_layout) > 0:
-            self.form_row_layout.removeRow(0)
-        self.fields = []
-        for label_name in label_names:
-            label = QLabel(label_name)
-            field = QLineEdit()
-            self.fields.append(field)
-            self.form_row_layout.addRow(label, field)
-        
-    def select_form(self):
-        self.state = self.choice
-        print('State:', self.choice)
-        if self.state == "Flower":
-            self.set_form("Genus", "Species", "Common Name (key)")
-        elif self.state == "Feature":
-            self.set_form("Location", "Class", "Latitude", "Longitude", "Map", "Elev")
-        elif self.state == "Sighting":
-            self.set_form("Name (key)", "Person", "Location", "Sighted")
-        else:
-            raise Exception("Unrecognized state:\n%s" % repr(self.state))
-    
-    def update_clicked(self):
-        values = [field.text() for field in self.fields]
-        if self.state == "Flower":
-            self.db.add_flower(values, self.editable_col)
-        elif self.state == "Feature":
-            self.db.add_feature(values, self.editable_col)
-        elif self.state == "Sighting":
-            self.db.add_sighting(values, self.editable_col)
-        self.window.close()
-    
-    def show(self):
-        self.window.show()
-
 
 class DialogUpdate:
     def __init__(self, sheet_type, item_row, editable_col, window, db):
@@ -233,7 +163,14 @@ class DialogUpdate:
             raise Exception("Unrecognized state:\n%s" % repr(self.state))
     
     def update_pressed(self):
-        
+        values = [field.text() for field in self.fields]
+        if self.state == "Flower":
+            self.db.add_flower(values, self.editable_col)
+        elif self.state == "Feature":
+            self.db.add_feature(values, self.editable_col)
+        elif self.state == "Sighting":
+            self.db.add_sighting(values, self.editable_col)
+        self.window.close()
 
 class Sheet:
     def __init__(self, title, header_labels, row_count, column_count, query_function, parent):
