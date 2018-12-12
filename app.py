@@ -111,6 +111,10 @@ class Sheet:
         self.table.setRowCount(row_count)
         self.table.setColumnCount(column_count)
         self.table.setHorizontalHeaderLabels(header)
+        header = self.table.horizontalHeader()       
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
         self.query_function = query_function
 
     def update(self, search_term="", limit=None):
