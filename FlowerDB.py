@@ -125,11 +125,56 @@ class FlowerDB:
         INSERT INTO FEATURES
         VALUES(?, ?, ?, ?, ?, ?);
         ''', (self, location, loc_class, latitude, longitude, loc_map, elev))
-        
+
+    #LOGIN/SIGNUP FUNCTIONS 
+
+    def create_user_table(self):
+        self._cursor.execute('''
+        CREATE TABLE IF NOT EXISTS 
+        USERS (USERNAME VARCHAR(30) primary key, 
+        PASSWORD VARCHAR(30));
+        ''')
+    
+    def get_all_users(self):
+        self._cursor.execute('''
+        SELECT USERNAME FROM USERS
+        ''')
+        return self._cursor.fetchall()
+
+    def add_user(self, username, password):
+        self._cursor.execute('''
+        INSERT INTO USERS
+        VALUES(?, ?);
+        ''', (username, password))
+
+    def authenticate_user(self, username, password):
+        self._cursor.execute('''
+        SELECT USERNAME FROM USERS
+        WHERE USERNAME = ? AND PASSWORD = ?
+        ;''', (username, password))
+
+        if self._cursor.fetchall() is not None:
+            return True
+        return False
+
 
 
 if __name__ == "__main__":
     flower_db = FlowerDB("test.db")
     with flower_db:
-        flower_db.update_flower("Sheltons violet", "ViolaNew", "sheltoniiNew")
-        
+        #flower_db.update_flowers("Sheltons violet", "ViolaNew", "sheltoniiNew")
+        flower_db.create_user_table()
+        #flower_db.add_user("test4", "123")
+        array = flower_db.get_all_users()
+        printstr = ""
+
+        exists = flower_db.authenticate_user("test2", "123")
+        if exists:
+            print('User is in database\n')
+        else:
+            print('User is not in database\n')
+
+        for i, row in enumerate(array):
+            for j, item in enumerate(row): 
+                printstr += str(item) + " "
+        print(printstr)
