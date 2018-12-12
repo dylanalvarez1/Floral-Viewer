@@ -102,13 +102,14 @@ class DialogCreate():
 
 
 class DialogUpdate:
-    def __init__(self, sheet_type, item_row, editable_col, window, db):
+    def __init__(self, sheet_type, item_row, editable_col, window, db, parent_window):
         # not a scalable way of doing this
         self.type = sheet_type.rstrip("s")
         self.window = window
         self.db = db
         self.item_row = item_row
         self.editable_col = editable_col
+        self.parent_window = parent_window
 
         container = QWidget()
         container_layout = QVBoxLayout()
@@ -148,7 +149,7 @@ class DialogUpdate:
             field.setText(self.item_row[col])
             self.fields.append(field)
             self.form_row_layout.addRow(label, field)
-    
+
     def build_form(self):
         if self.type == "Flower":
             self.set_form("Genus", "Species", "Common Name")
@@ -170,6 +171,7 @@ class DialogUpdate:
             self.db.update_sightings(self.item_row, new_values)
         else:
             raise Exception("Unrecognized state:\n%s" % repr(self.type))
+        self.parent_window.do_sheet_update()
         self.window.close()
 
 class Sheet:
@@ -214,8 +216,6 @@ class Sheet:
         self.cell_c = column
         item = self.table.item(row, column)
         item_row = [self.table.item(self.cell_r - 1, i).text() for i in range(self.table.columnCount())]
-        print(item.text())
-        print(item_row)
         # the self.title is the worst way to store the state... using an enum would be better
         self.parent.create_update_dialog(self.title, item_row, self.cell_c)
 
@@ -256,6 +256,7 @@ class MainWindow(QMainWindow):
         #Change the value of the result size
         self.limit_size = 10
         self.limit_box.textEdited.connect(self.update_limit)
+        self.limit_box.setText("10")
         layout.addWidget(self.limit_label)
         layout.addWidget(self.limit_box)
 
@@ -320,7 +321,7 @@ class MainWindow(QMainWindow):
     
     def create_update_dialog(self, sheet_type, item_row, col_num):
         # close the old dialog_update window?
-        self.dialog_update = DialogUpdate(sheet_type, item_row, col_num, SubWindow(self), self.db)
+        self.dialog_update = DialogUpdate(sheet_type, item_row, col_num, SubWindow(self), self.db, self)
         self.dialog_update.window.show()
     
     def on_combobox_changed(self, value):
@@ -374,6 +375,6 @@ if __name__ == "__main__":
     with flower_db:
         qApp = QApplication([])
         set_dark_style(qApp)
-        window = MainWindow(db=flower_db)
+        main_window = MainWindow(db=flower_db)
         qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
         qApp.exec_()
