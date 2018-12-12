@@ -119,7 +119,7 @@ class Sheet:
         self.table.clearContents()
         for i, row in enumerate(results):
             for j, item in enumerate(row): 
-                self.table.setItem(i, j, QTableWidgetItem(item))
+                self.table.setItem(i, j, QTableWidgetItem(str(item)))
 
 
 class MainWindow(QMainWindow):
@@ -130,10 +130,6 @@ class MainWindow(QMainWindow):
             raise Exception("No database supplied")
         del kwargs['db']
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.results = None
-        self.result_label = "Results: "
-
-
 
         container = QWidget()
         buttons = QWidget()
@@ -145,13 +141,13 @@ class MainWindow(QMainWindow):
 
         c_button.clicked.connect(self.on_button_clicked_c)
 
-        label = QLabel("Search")
+        self.filter_label = QLabel("Search")
         self.query = QLineEdit()
 
         self.query.textChanged.connect(self.do_sheet_update)
 
 
-        layout.addWidget(label)
+        layout.addWidget(self.filter_label)
         layout.addWidget(self.query)
         layout.addWidget(c_button)        
 
@@ -224,9 +220,12 @@ class MainWindow(QMainWindow):
         index = self.tabs.currentIndex()
         if index == 0:
             sheet = self.sightings_sheet
+            self.filter_label.setText("Filter by flower:")
         elif index == 1:
             sheet = self.flowers_sheet
+            self.filter_label.setText("Filter by flower:")
         elif index ==2:
+            self.filter_label.setText("Filter by location:")
             sheet = self.features_sheet
         else:
             raise Exception("Unrecognized sheet index:\n%s" % index)
