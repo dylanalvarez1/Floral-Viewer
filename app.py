@@ -100,10 +100,83 @@ class DialogCreate():
     def show(self):
         self.window.show()
 
+class DialogUpdate():
+    def __init__(self, window, db):
+        self.window = window
+        self.db = db
+
+        container = QWidget()
+        container_layout = QVBoxLayout()
+        top_row = QWidget()
+        top_row_layout = QHBoxLayout()
+        label = QLabel('Create a new')
+        self.combo_box = QComboBox()
+        self.combo_box.addItem('Sighting')
+        self.combo_box.addItem('Flower')
+        self.combo_box.addItem('Feature')
+        self.combo_box.currentTextChanged.connect(self.update)
+        top_row_layout.addWidget(label)
+        top_row_layout.addWidget(self.combo_box)
+        top_row.setLayout(top_row_layout)
+
+        form_row = QWidget()
+        self.form_row_layout = QFormLayout()
+        self.fields = []
+        form_row.setLayout(self.form_row_layout)
+
+        self.insert_button = QPushButton("Insert")
+        self.insert_button.clicked.connect(self.insert)
+        container_layout.addWidget(top_row)
+        container_layout.addWidget(form_row)
+        container_layout.addWidget(self.insert_button)
+        container.setLayout(container_layout)
+        self.window.setCentralWidget(container)
+
+        #setting up the default initial values
+        self.state = "Sighting"
+        self.set_form("Name", "Person", "Location", "Sighted")
+
+
+    def set_form(self, *label_names):
+        while len(self.form_row_layout) > 0:
+            self.form_row_layout.removeRow(0)
+        self.fields = []
+        for label_name in label_names:
+            label = QLabel(label_name)
+            field = QLineEdit()
+            self.fields.append(field)
+            self.form_row_layout.addRow(label, field)
+        
+    def update(self):
+        self.state = self.combo_box.currentText()
+        if self.state == "Flower":
+            self.set_form("Genus", "Species", "Common Name")
+        elif self.state == "Feature":
+            self.set_form("Location", "Class", "Latitude", "Longitude", "Map", "Elev")
+        elif self.state == "Sighting":
+            self.set_form("Name", "Person", "Location", "Sighted")
+        else:
+            raise Exception("Unrecognized state:\n%s" % repr(self.state))
+    
+    def insert(self):
+        # getting the values in each field
+        values = [field.text() for field in self.fields]
+        if self.state == "Flower":
+            self.db.add_flower(*values)
+        elif self.state == "Feature":
+            self.db.add_feature(*values)
+        elif self.state == "Sighting":
+            self.db.add_sighting(*values)
+        self.window.close()
+    
+    def show(self):
+        self.window.show()
+
 class Sheet:
-    def __init__(self, title, header, row_count, column_count, query_function):
+    def __init__(self, title, header, row_count, column_count, query_function, parent):
         self.table = QTableWidget()
         self.table.resize(600, 600)
+        self.parent = parent
         self.cell_r = ""
         self.cell_c = ""
         self.table.setRowCount(row_count)
@@ -141,6 +214,7 @@ class Sheet:
         self.cell_c = column
         item = self.table.item(row, column)
         print(item.text())
+        self.parent.dialog_update.show()
         
         
 
@@ -189,7 +263,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(c_button)        
 
         self.dialog_create = DialogCreate(SubWindow(self), self.db)
-        self.dialog_update = SubWindow(self)
+        self.dialog_update = DialogUpdate(SubWindow(self), self.db)
         
         f_layout = QVBoxLayout()
 
@@ -199,9 +273,9 @@ class MainWindow(QMainWindow):
         results_container.setStyleSheet('padding: 50px')
 
         # setting up the 3 sheets
-        self.sightings_sheet = Sheet("Sightings", ["NAME", "PERSON", "LOCATION", "SIGHTING"], 10, 4, self.db.get_sightings_by_keyword)
-        self.flowers_sheet = Sheet("Flowers", ["GENUS", "SPECIES", "COMNAME"], 10, 3, self.db.get_flowers_by_keyword)
-        self.features_sheet = Sheet("Features", ["LOCATION", "CLASS", "LATITUDE", "LONGITUDE", "MAP", "ELEV"], 10, 6, self.db.get_features_by_keyword)
+        self.sightings_sheet = Sheet("Sightings", ["NAME", "PERSON", "LOCATION", "SIGHTING"], 10, 4, self.db.get_sightings_by_keyword, self)
+        self.flowers_sheet = Sheet("Flowers", ["GENUS", "SPECIES", "COMNAME"], 10, 3, self.db.get_flowers_by_keyword, self)
+        self.features_sheet = Sheet("Features", ["LOCATION", "CLASS", "LATITUDE", "LONGITUDE", "MAP", "ELEV"], 10, 6, self.db.get_features_by_keyword, self)
 
         # Initialize tab screen
         self.tabs = QTabWidget()
