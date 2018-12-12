@@ -108,9 +108,18 @@ class Sheet:
     def __init__(self, title, header, row_count, column_count, query_function):
         self.table = QTableWidget()
         self.table.resize(600, 600)
+        self.cell = ""
         self.table.setRowCount(row_count)
         self.table.setColumnCount(column_count)
         self.table.setHorizontalHeaderLabels(header)
+
+        #Make table not editable
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
+        #Connect cell clicked event
+        self.table.cellClicked.connect(self.cell_was_clicked)
+
+        #Resize rows to fit screen
         header = self.table.horizontalHeader()       
         header.setSectionResizeMode(0, QHeaderView.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
@@ -127,6 +136,15 @@ class Sheet:
         for i, row in enumerate(results):
             for j, item in enumerate(row): 
                 self.table.setItem(i, j, QTableWidgetItem(str(item)))
+    
+    def cell_was_clicked(self, row, column):
+        actual_row = row + 1
+        print("actual row:", actual_row)
+        print("Row %d and Column %d was clicked" % (actual_row, column))
+        item = self.table.itemAt(actual_row, column)
+        self.cell = item.text()
+        print(self.cell)
+        
 
 
 class MainWindow(QMainWindow):
