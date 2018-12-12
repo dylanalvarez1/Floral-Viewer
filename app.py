@@ -22,10 +22,6 @@ def set_dark_style(q_app):
     dark_palette.setColor(QPalette.HighlightedText, Qt.black)
 
     qApp.setPalette(dark_palette)
-    
-
-        #do something
-        #do_loop = False
 
 class SubWindow(QMainWindow):
     def __init__(self, parent):
@@ -108,7 +104,8 @@ class Sheet:
     def __init__(self, title, header, row_count, column_count, query_function):
         self.table = QTableWidget()
         self.table.resize(600, 600)
-        self.cell = ""
+        self.cell_r = ""
+        self.cell_c = ""
         self.table.setRowCount(row_count)
         self.table.setColumnCount(column_count)
         self.table.setHorizontalHeaderLabels(header)
@@ -138,12 +135,13 @@ class Sheet:
                 self.table.setItem(i, j, QTableWidgetItem(str(item)))
     
     def cell_was_clicked(self, row, column):
-        actual_row = row + 1
-        print("actual row:", actual_row)
-        print("Row %d and Column %d was clicked" % (actual_row, column))
-        item = self.table.itemAt(actual_row, column)
-        self.cell = item.text()
-        print(self.cell)
+        
+        print("Row %d and Column %d was clicked" % (row+1, column))
+        self.cell_r = row+1
+        self.cell_c = column
+        item = self.table.item(row, column)
+        print(item.text())
+        
         
 
 
@@ -194,7 +192,6 @@ class MainWindow(QMainWindow):
         self.dialog_update = SubWindow(self)
         
         f_layout = QVBoxLayout()
-
 
         buttons.setLayout(layout)
 
