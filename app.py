@@ -148,6 +148,34 @@ class MainWindow(QMainWindow):
         results_container.setStyleSheet('padding: 50px')
         self.results_table = QTableWidget()
 
+        # Initialize tab screen
+        self.tabs = QTabWidget()
+        self.tab1 = QWidget()	
+        self.tab2 = QWidget()
+        self.tab3 = QWidget()
+        self.tabs.resize(300,200) 
+ 
+        # Add tabs
+        self.tabs.addTab(self.tab1,"Sightings")
+        self.tabs.addTab(self.tab2,"Flowers")
+        self.tabs.addTab(self.tab3,"Features")
+
+        ###################################################
+        #layouts for tabs
+        self.tab1.layout = QVBoxLayout()
+        self.tab1.layout.addWidget(self.results_table)
+        self.tab1.setLayout(self.tab1.layout)
+
+        """ self.tab2.layout = QVBoxLayout()
+        self.tab2.layout.addWidget(self.results_table)
+        self.tab2.setLayout(self.tab2.layout)
+
+        self.tab3.layout = QVBoxLayout()
+        self.tab3.layout.addWidget(self.results_table)
+        self.tab3.setLayout(self.tab3.layout) """
+        ##################################################### Comment out 2 out of the 3 paragraphs and you'll see that the one left is where the table renders
+        
+
         # initiate table
         self.results_table.setWindowTitle("Flowers")
         self.results_table.resize(600, 600)
@@ -160,7 +188,9 @@ class MainWindow(QMainWindow):
         
 
         f_layout.addWidget(buttons)
-        f_layout.addWidget(self.results_table)
+
+        f_layout.addWidget(self.tabs)
+        #f_layout.addWidget(self.results_table)
         container.setLayout(f_layout)
 
         self.setCentralWidget(container)
