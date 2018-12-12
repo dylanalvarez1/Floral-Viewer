@@ -140,16 +140,26 @@ class MainWindow(QMainWindow):
         buttons.setLayout(layout)
 
         results_container = QWidget()
-        results_container.setStyleSheet('padding: 200px')
-        results_label = QLabel(self.result_label)
-        results_label.setObjectName('results')
+        results_container.setStyleSheet('padding: 50px')
+        results_table = QTableWidget()
+
+        # initiate table
+        results_table.setWindowTitle("Flowers")
+        results_table.resize(600, 600)
+        #results_table.horizontalHeader.hide()
+        results_table.setRowCount(10)
+        results_table.setColumnCount(3)
+        results_table.setHorizontalHeaderLabels(["GENUS", "SPECIES", "COMNAME"])
+
+        results_table.setObjectName('results')
         
 
         f_layout.addWidget(buttons)
-        f_layout.addWidget(results_label)
+        f_layout.addWidget(results_table)
         container.setLayout(f_layout)
 
         self.setCentralWidget(container)
+        self.setWindowTitle("Flower-Viewer")
         self.show()
 
     def set_db(self, db):
@@ -171,9 +181,11 @@ class MainWindow(QMainWindow):
            flower_str += " %s (%s %s) \n" % (flower[2], flower[0], flower[1])
         self.result_label += flower_str
 
-        #Find the old results
-        result_text = self.findChild(QLabel, "results")
-        result_text.setText(self.result_label)
+        #Find the results table
+        results_table.clear()
+        
+        result_table = self.findChild(QTableWidget, "results")
+        #result_table.setText(self.result_label)
     
 
         
