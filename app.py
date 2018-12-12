@@ -103,6 +103,7 @@ class DialogCreate():
 class DialogUpdate():
     def __init__(self, window, db, item, choice, parent):
         self.window = window
+        self.window.setWindowTitle("Create new entry")
         self.db = db
         self.item = item
         self.choice = choice
@@ -171,8 +172,9 @@ class DialogUpdate():
     def show(self):
         self.window.show()
 
+
 class Sheet:
-    def __init__(self, title, header, row_count, column_count, query_function, parent):
+    def __init__(self, title, header_labels, row_count, column_count, query_function, parent):
         self.table = QTableWidget()
         self.table.resize(600, 600)
         self.parent = parent
@@ -180,7 +182,7 @@ class Sheet:
         self.cell_c = ""
         self.table.setRowCount(row_count)
         self.table.setColumnCount(column_count)
-        self.table.setHorizontalHeaderLabels(header)
+        self.table.setHorizontalHeaderLabels(header_labels)
 
         #Make table not editable
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -189,10 +191,9 @@ class Sheet:
         self.table.cellClicked.connect(self.cell_was_clicked)
 
         #Resize rows to fit screen
-        header = self.table.horizontalHeader()       
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header = self.table.horizontalHeader()
+        for index, item in enumerate(header_labels):
+            header.setSectionResizeMode(index, QHeaderView.Stretch)
         self.query_function = query_function
 
     def update(self, search_term="", limit=None):
@@ -244,18 +245,17 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.filter_label)
         layout.addWidget(self.query)
 
-         #Create input field that only allows int
-        self.onlyInt = QIntValidator()
-        self.LineEdit = QLineEdit()
-        self.LineEdit.setValidator(self.onlyInt)
-        self.LineEdit.setFixedWidth(50)
-        self.result_size_label = QLabel("Limit:")
+        #Create input field that only allows int
+        self.limit_box = QLineEdit()
+        self.limit_box.setValidator(QIntValidator())
+        self.limit_box.setFixedWidth(50)
+        self.limit_label = QLabel("Limit:")
 
         #Change the value of the result size
-        self.result_size = 10
-        self.LineEdit.textChanged.connect(self.change_result_size)
-        layout.addWidget(self.result_size_label)
-        layout.addWidget(self.LineEdit)
+        self.limit_size = 10
+        self.limit_box.textEdited.connect(self.update_limit)
+        layout.addWidget(self.limit_label)
+        layout.addWidget(self.limit_box)
 
         layout.addWidget(c_button)        
 
@@ -310,7 +310,7 @@ class MainWindow(QMainWindow):
         container.setLayout(f_layout)
 
         self.setCentralWidget(container)
-        self.setWindowTitle("Flower-Viewer")
+        self.setWindowTitle("Floral-Viewer")
         self.showMaximized()
 
     def on_button_clicked_c(self):
@@ -319,11 +319,13 @@ class MainWindow(QMainWindow):
     def on_combobox_changed(self, value):
         print("Value: ", value)        
     
-    def change_result_size(self, value):
+    def update_limit(self, value):
+        print('value:', value)
         if value:
-            self.result_size = int(value)
-            print('value:', value)
-            self.do_sheet_update()
+            self.limit_size = int(value)
+        else:
+            self.limit_size = None
+        self.do_sheet_update()
     
     def getChoice(self, x):
         return {
@@ -346,15 +348,19 @@ class MainWindow(QMainWindow):
         if index == 0:
             sheet = self.sightings_sheet
             self.filter_label.setText("Filter by flower:")
+            self.dialog_create.state = "Sighting"
         elif index == 1:
             sheet = self.flowers_sheet
             self.filter_label.setText("Filter by flower:")
+            self.dialog_create.state = "Flower"
         elif index ==2:
             self.filter_label.setText("Filter by location:")
             sheet = self.features_sheet
+            self.dialog_create.state = "Feature"
         else:
             raise Exception("Unrecognized sheet index:\n%s" % index)
-        sheet.update(self.query.text(), self.result_size)
+        #if 
+        sheet.update(self.query.text(), self.limit_size)
         
     
     
