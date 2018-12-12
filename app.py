@@ -297,9 +297,9 @@ class MainWindow(QMainWindow):
         c_button.setStyleSheet('padding: 5px')
         c_button.clicked.connect(self.on_button_clicked_c)
 
-        l_button = QPushButton('Select a flower')
-        l_button.setStyleSheet('padding: 5px')
-        l_button.clicked.connect(self.on_button_clicked_l)
+        self.l_button = QPushButton('Select a flower')
+        self.l_button.setStyleSheet('padding: 5px')
+        self.l_button.clicked.connect(self.on_button_clicked_l)
 
         self.filter_label = QLabel("Search")
         self.query = QLineEdit()
@@ -323,7 +323,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.limit_label)
         layout.addWidget(self.limit_box)
 
-        layout.addWidget(l_button)
+        layout.addWidget(self.l_button)
         layout.addWidget(c_button)        
 
         self.dialog_create = DialogCreate(SubWindow(self), self.db)
@@ -420,14 +420,17 @@ class MainWindow(QMainWindow):
         if index == 0:
             sheet = self.sightings_sheet
             self.filter_label.setText("Filter by sighting:")
+            self.l_button.show()
             self.dialog_create.state = "Sighting"
         elif index == 1:
             sheet = self.flowers_sheet
             self.filter_label.setText("Filter by flower:")
+            self.l_button.hide()
             self.dialog_create.state = "Flower"
         elif index ==2:
             self.filter_label.setText("Filter by location:")
             sheet = self.features_sheet
+            self.l_button.hide()
             self.dialog_create.state = "Feature"
         else:
             raise Exception("Unrecognized sheet index:\n%s" % index) 
