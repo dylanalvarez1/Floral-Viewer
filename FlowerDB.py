@@ -58,7 +58,6 @@ class FlowerDB:
         self._cursor.execute('''
             SELECT * FROM FLOWERS
             WHERE COMNAME LIKE ?''', ('%'+keyword+'%',))
-        
         return self._cursor.fetchall()
 
     def get_features_by_keyword(self, keyword):
