@@ -120,7 +120,7 @@ class Sheet:
     def update(self, search_term="", limit=None):
         results = self.query_function(search_term)
         if limit is not None:
-            results = results[::limit]
+            results = results[:limit]
         #settign Row count to avoid empty rows
         self.table.setRowCount(len(results))
         self.table.clearContents()
@@ -234,7 +234,10 @@ class MainWindow(QMainWindow):
         print("Value: ", value)        
     
     def change_result_size(self, value):
-        self.result_size = value
+        if value:
+            self.result_size = int(value)
+            print('value:', value)
+            self.do_sheet_update()
 
     def do_sheet_update(self):
         # getting current index
