@@ -275,6 +275,26 @@ class Sheet:
             #Set the label of self.query (the search bar) to what you clicked
             self.parent.parent_window.query.setText(self.table.item(row, column).text())
 
+class Login(QDialog):
+    def __init__(self, parent=None):
+        super(Login, self).__init__(parent)
+        self.textName = QLineEdit(self)
+        self.textPass = QLineEdit(self)
+        self.buttonLogin = QPushButton('Login', self)
+        self.buttonLogin.clicked.connect(self.handleLogin)
+        layout = QVBoxLayout(self)
+        layout.addWidget(self.textName)
+        layout.addWidget(self.textPass)
+        layout.addWidget(self.buttonLogin)
+
+    def handleLogin(self):
+        if (self.textName.text() == 'foo' and
+            self.textPass.text() == 'bar'):
+            self.accept()
+        else:
+            QMessageBox.warning(
+                self, 'Error', 'Bad user or password')
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         if "db" in kwargs:
@@ -446,6 +466,8 @@ if __name__ == "__main__":
     with flower_db:
         qApp = QApplication([])
         set_dark_style(qApp)
-        main_window = MainWindow(db=flower_db)
-        qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
-        qApp.exec_()
+        login = Login()
+        if login.exec_() == QDialog.Accepted:
+            main_window = MainWindow(db=flower_db)
+            qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
+            qApp.exec_()
