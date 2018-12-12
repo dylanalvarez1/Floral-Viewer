@@ -112,10 +112,12 @@ class Sheet:
         self.table.setHorizontalHeaderLabels(header)
         self.query_function = query_function
 
-    def update(self, search_term=None, limit=None):
+    def update(self, search_term="", limit=None):
         results = self.query_function(search_term)
         if limit is not None:
             results = results[::limit]
+        #settign Row count to avoid empty rows
+        self.table.setRowCount(len(results))
         self.table.clearContents()
         for i, row in enumerate(results):
             for j, item in enumerate(row): 
@@ -135,7 +137,7 @@ class MainWindow(QMainWindow):
         buttons = QWidget()
         layout = QHBoxLayout()
 
-        c_button = QPushButton('+')
+        c_button = QPushButton('Create New')
 
         c_button.setStyleSheet('padding: 5px')
 
