@@ -36,6 +36,7 @@ class DialogCreate():
     def __init__(self, window, db):
         self.window = window
         self.db = db
+
         container = QWidget()
         container_layout = QVBoxLayout()
         top_row = QWidget()
@@ -137,7 +138,7 @@ class MainWindow(QMainWindow):
         buttons = QWidget()
         layout = QHBoxLayout()
 
-        c_button = QPushButton('Create New')
+        c_button = QPushButton('Create New Entry')
 
         c_button.setStyleSheet('padding: 5px')
 
@@ -151,6 +152,20 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(self.filter_label)
         layout.addWidget(self.query)
+
+         #Create input field that only allows int
+        self.onlyInt = QIntValidator()
+        self.LineEdit = QLineEdit()
+        self.LineEdit.setValidator(self.onlyInt)
+        self.LineEdit.setFixedWidth(50)
+        self.result_size_label = QLabel("Limit:")
+
+        #Change the value of the result size
+        self.result_size = 10
+        self.LineEdit.textChanged.connect(self.change_result_size)
+        layout.addWidget(self.result_size_label)
+        layout.addWidget(self.LineEdit)
+
         layout.addWidget(c_button)        
 
         self.dialog_create = DialogCreate(SubWindow(self), self.db)
@@ -206,13 +221,16 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(container)
         self.setWindowTitle("Flower-Viewer")
-        self.show()
+        self.showMaximized()
 
     def on_button_clicked_c(self):
         self.dialog_create.show()
     
     def on_combobox_changed(self, value):
         print("Value: ", value)        
+    
+    def change_result_size(self, value):
+        self.result_size = value
 
     def do_sheet_update(self):
         # getting current index
@@ -231,7 +249,7 @@ class MainWindow(QMainWindow):
             sheet = self.features_sheet
         else:
             raise Exception("Unrecognized sheet index:\n%s" % index)
-        sheet.update(self.query.text())
+        sheet.update(self.query.text(), self.result_size)
         
     
     
