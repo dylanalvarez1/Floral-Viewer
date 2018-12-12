@@ -174,6 +174,54 @@ class DialogUpdate:
         self.parent_window.do_sheet_update()
         self.window.close()
 
+class DialogFlowerList:
+    def __init__(self, window, db, parent_window):
+        # not a scalable way of doing this
+        self.window = window
+        self.db = db
+        self.parent_window = parent_window
+        self.flowers_sheet = Sheet("Flowers", ["GENUS", "SPECIES", "COMNAME"], 10, 3, self.db.get_flowers_by_keyword, self)
+        self.table = self.flowers_sheet.table
+
+        container = QWidget()
+        container_layout = QVBoxLayout()
+        top_row = QWidget()
+        top_row_layout = QHBoxLayout()
+        label = QLabel('Select a flower to search by:')
+        top_row_layout.addWidget(label)
+        top_row.setLayout(top_row_layout)
+
+        form_row = QWidget()
+        self.form_row_layout = QFormLayout()
+
+        self.form_row_layout.addWidget(self.table)
+        
+        form_row.setLayout(self.form_row_layout)
+
+        container_layout.addWidget(top_row)
+        container_layout.addWidget(form_row)
+        container.setLayout(container_layout)
+        self.window.setCentralWidget(container)
+        #update entries
+        self.update()
+
+    def update(self, limit=None):
+        results = self.db.get_common_names()
+        if limit is not None:
+            results = results[:limit]
+        #settign Row count to avoid empty rows
+        self.table.setRowCount(len(results))
+        self.table.clearContents()
+        for i, row in enumerate(results):
+            for j, item in enumerate(row): 
+                self.table.setItem(i, j, QTableWidgetItem(str(item)))
+    
+    #its called this, but it actually puts the text into
+    def create_update_dialog(self, sheet_type, item_row, col_num):
+        item = self.table.item(item_row, col_num)
+        self.parent_window.query.setText(item.text())
+        
+   
 class Sheet:
     def __init__(self, title, header_labels, row_count, column_count, query_function, parent):
         self.title = title
@@ -228,15 +276,22 @@ class MainWindow(QMainWindow):
         del kwargs['db']
         super(MainWindow, self).__init__(*args, **kwargs)
 
+        #Window icon
+        app_icon = QIcon()
+        app_icon.addFile('icon.png')
+        self.setWindowIcon(app_icon)
+
         container = QWidget()
         buttons = QWidget()
         layout = QHBoxLayout()
 
         c_button = QPushButton('Create New Entry')
-
         c_button.setStyleSheet('padding: 5px')
-
         c_button.clicked.connect(self.on_button_clicked_c)
+
+        l_button = QPushButton('Select a flower')
+        l_button.setStyleSheet('padding: 5px')
+        l_button.clicked.connect(self.on_button_clicked_l)
 
         self.filter_label = QLabel("Search")
         self.query = QLineEdit()
@@ -260,6 +315,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.limit_label)
         layout.addWidget(self.limit_box)
 
+        layout.addWidget(l_button)
         layout.addWidget(c_button)        
 
         self.dialog_create = DialogCreate(SubWindow(self), self.db)
@@ -319,6 +375,10 @@ class MainWindow(QMainWindow):
     def on_button_clicked_c(self):
         self.dialog_create.show()
     
+    def on_button_clicked_l(self):
+        self.dialog_flower_list = DialogFlowerList(SubWindow(self), self.db, self)
+        self.dialog_flower_list.window.show()
+    
     def create_update_dialog(self, sheet_type, item_row, col_num):
         # close the old dialog_update window?
         self.dialog_update = DialogUpdate(sheet_type, item_row, col_num, SubWindow(self), self.db, self)
@@ -351,7 +411,7 @@ class MainWindow(QMainWindow):
         index = self.tabs.currentIndex()
         if index == 0:
             sheet = self.sightings_sheet
-            self.filter_label.setText("Filter by flower:")
+            self.filter_label.setText("Filter by sighting:")
             self.dialog_create.state = "Sighting"
         elif index == 1:
             sheet = self.flowers_sheet
