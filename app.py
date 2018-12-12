@@ -180,7 +180,9 @@ class DialogFlowerList:
         self.window = window
         self.db = db
         self.parent_window = parent_window
-        self.flowers_sheet = Sheet("Flowers", ["GENUS", "SPECIES", "COMNAME"], 10, 3, self.db.get_flowers_by_keyword, self)
+
+        #Do not pass a title to the sheet so it knows how to handle the click behavior
+        self.flowers_sheet = Sheet("", ["GENUS", "SPECIES", "COMNAME"], 10, 3, self.db.get_flowers_by_keyword, self)
         self.table = self.flowers_sheet.table
 
         container = QWidget()
@@ -259,13 +261,19 @@ class Sheet:
                 self.table.setItem(i, j, QTableWidgetItem(str(item)))
     
     def cell_was_clicked(self, row, column):
-        print("Row %d and Column %d was clicked" % (row+1, column))
-        self.cell_r = row+1
-        self.cell_c = column
-        item = self.table.item(row, column)
-        item_row = [self.table.item(self.cell_r - 1, i).text() for i in range(self.table.columnCount())]
-        # the self.title is the worst way to store the state... using an enum would be better
-        self.parent.create_update_dialog(self.title, item_row, self.cell_c)
+        #Sorry Will, I know its bad but this is the only way atm i could find a way to tell if this was called from the flower list or the normal tabs
+        if self.title is not "":
+            print("Row %d and Column %d was clicked" % (row+1, column))
+            self.cell_r = row+1
+            self.cell_c = column
+            item = self.table.item(row, column)
+            item_row = [self.table.item(self.cell_r - 1, i).text() for i in range(self.table.columnCount())]
+            # the self.title is the worst way to store the state... using an enum would be better
+            self.parent.create_update_dialog(self.title, item_row, self.cell_c)
+        
+        else:
+            #Set the label of self.query (the search bar) to what you clicked
+            self.parent.parent_window.query.setText(self.table.item(row, column).text())
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
