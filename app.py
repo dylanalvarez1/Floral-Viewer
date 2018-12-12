@@ -101,24 +101,19 @@ class DialogCreate():
         self.window.show()
 
 class DialogUpdate():
-    def __init__(self, window, db, item, choice):
+    def __init__(self, window, db, item, choice, parent):
         self.window = window
         self.db = db
         self.item = item
         self.choice = choice
+        self.parent = parent
 
         container = QWidget()
         container_layout = QVBoxLayout()
         top_row = QWidget()
         top_row_layout = QHBoxLayout()
         label = QLabel('Update entry: ' + self.item.text())
-        """ self.combo_box = QComboBox()
-        self.combo_box.addItem('Sighting')
-        self.combo_box.addItem('Flower')
-        self.combo_box.addItem('Feature') """
-        """ self.combo_box.currentTextChanged.connect(self.update) """
         top_row_layout.addWidget(label)
-        """ top_row_layout.addWidget(self.combo_box) """
         top_row.setLayout(top_row_layout)
 
         form_row = QWidget()
@@ -153,11 +148,11 @@ class DialogUpdate():
         self.state = self.choice
         print('State:', self.choice)
         if self.state == "Flower":
-            self.set_form("Genus", "Species", "Common Name")
+            self.set_form("Genus", "Species", "Common Name (key)")
         elif self.state == "Feature":
             self.set_form("Location", "Class", "Latitude", "Longitude", "Map", "Elev")
         elif self.state == "Sighting":
-            self.set_form("Name", "Person", "Location", "Sighted")
+            self.set_form("Name (key)", "Person", "Location", "Sighted")
         else:
             raise Exception("Unrecognized state:\n%s" % repr(self.state))
     
@@ -165,11 +160,12 @@ class DialogUpdate():
         # getting the values in each field
         values = [field.text() for field in self.fields]
         if self.state == "Flower":
-            self.db.add_flower(*values)
+            self.db.update_flower(*values)
         elif self.state == "Feature":
-            self.db.add_feature(*values)
+            self.db.update_feature(*values)
         elif self.state == "Sighting":
-            self.db.add_sighting(*values)
+            self.db.update_sighting(*values)
+        self.parent.do_sheet_update()
         self.window.close()
     
     def show(self):
@@ -339,7 +335,7 @@ class MainWindow(QMainWindow):
     def create_update_dialog(self, item):
         choice = self.getChoice(self.tabs.currentIndex())
         print('choice:', choice)
-        self.dialog_update = DialogUpdate(SubWindow(self), self.db, item, choice)
+        self.dialog_update = DialogUpdate(SubWindow(self), self.db, item, choice, self)
 
     def do_sheet_update(self):
         # getting current index

@@ -82,7 +82,7 @@ class FlowerDB:
 
     # TODO: check if comname is a valid file
     # UPDATE FUNCTIONS
-    def update_flower(self, comname, genus, species):
+    def update_flower(self, genus, species, comname):
         self._cursor.execute('''
             UPDATE FLOWERS
             SET GENUS = ?, SPECIES = ?
@@ -117,6 +117,5 @@ class FlowerDB:
 if __name__ == "__main__":
     flower_db = FlowerDB("test.db")
     with flower_db:
-        for flower in flower_db.get_flowers_by_keyword(input()):
-            print("%s (%s %s)" % (flower[2], flower[0], flower[1]) )
+        flower_db.update_flower("Sheltons violet", "ViolaNew", "sheltoniiNew")
         
