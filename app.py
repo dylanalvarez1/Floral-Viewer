@@ -103,6 +103,25 @@ class DialogCreate():
     def show(self):
         self.window.show()
 
+class Sheet:
+    def __init__(self, title, header, row_count, column_count, query_function):
+        self.table = QTableWidget()
+        self.table.resize(600, 600)
+        self.table.setRowCount(row_count)
+        self.table.setColumnCount(column_count)
+        self.table.setHorizontalHeaderLabels(header)
+        self.query_function = query_function
+
+    def update(self, search_term=None, limit=None):
+        results = self.query_function(search_term)
+        if limit is not None:
+            results = results[::limit]
+        self.table.clearContents()
+        for i, row in enumerate(results):
+            for j, item in enumerate(row): 
+                self.table.setItem(i, j, QTableWidgetItem(item))
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         if "db" in kwargs:
@@ -127,13 +146,13 @@ class MainWindow(QMainWindow):
         c_button.clicked.connect(self.on_button_clicked_c)
 
         label = QLabel("Search")
-        query = QLineEdit()
+        self.query = QLineEdit()
 
-        query.textChanged.connect(self.on_text_change)
+        self.query.textChanged.connect(self.do_sheet_update)
 
 
         layout.addWidget(label)
-        layout.addWidget(query)
+        layout.addWidget(self.query)
         layout.addWidget(c_button)        
 
         self.dialog_create = DialogCreate(SubWindow(self), self.db)
@@ -146,7 +165,11 @@ class MainWindow(QMainWindow):
 
         results_container = QWidget()
         results_container.setStyleSheet('padding: 50px')
-        self.results_table = QTableWidget()
+
+        # setting up the 3 sheets
+        self.sightings_sheet = Sheet("Sightings", ["NAME", "PERSON", "LOCATION", "SIGHTING"], 10, 4, self.db.get_sightings_by_keyword)
+        self.flowers_sheet = Sheet("Flowers", ["GENUS", "SPECIES", "COMNAME"], 10, 3, self.db.get_flowers_by_keyword)
+        self.features_sheet = Sheet("Features", ["LOCATION", "CLASS", "LATITUDE", "LONGITUDE", "MAP", "ELEV"], 10, 6, self.db.get_features_by_keyword)
 
         # Initialize tab screen
         self.tabs = QTabWidget()
@@ -160,37 +183,27 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.tab2,"Flowers")
         self.tabs.addTab(self.tab3,"Features")
 
-        ###################################################
         #layouts for tabs
         self.tab1.layout = QVBoxLayout()
-        self.tab1.layout.addWidget(self.results_table)
+        self.tab1.layout.addWidget(self.sightings_sheet.table)
         self.tab1.setLayout(self.tab1.layout)
 
-        """ self.tab2.layout = QVBoxLayout()
-        self.tab2.layout.addWidget(self.results_table)
+        self.tab2.layout = QVBoxLayout()
+        self.tab2.layout.addWidget(self.flowers_sheet.table)
         self.tab2.setLayout(self.tab2.layout)
 
         self.tab3.layout = QVBoxLayout()
-        self.tab3.layout.addWidget(self.results_table)
-        self.tab3.setLayout(self.tab3.layout) """
-        ##################################################### Comment out 2 out of the 3 paragraphs and you'll see that the one left is where the table renders
-        
-
-        # initiate table
-        self.results_table.setWindowTitle("Flowers")
-        self.results_table.resize(600, 600)
-        #results_table.horizontalHeader.hide()
-        self.results_table.setRowCount(10)
-        self.results_table.setColumnCount(3)
-        self.results_table.setHorizontalHeaderLabels(["GENUS", "SPECIES", "COMNAME"])
-
-        self.results_table.setObjectName('results')
-        
+        self.tab3.layout.addWidget(self.features_sheet.table)
+        self.tab3.setLayout(self.tab3.layout) 
+    
+        # calling the sheet update function whenever tab is changed
+        self.tabs.currentChanged.connect(self.do_sheet_update)
+        # calling sheet_update so the sheet is filled to begin with
+        self.do_sheet_update()
 
         f_layout.addWidget(buttons)
 
         f_layout.addWidget(self.tabs)
-        #f_layout.addWidget(self.results_table)
         container.setLayout(f_layout)
 
         self.setCentralWidget(container)
@@ -201,22 +214,24 @@ class MainWindow(QMainWindow):
         self.dialog_create.show()
     
     def on_combobox_changed(self, value):
-        print("Value: ", value)
+        print("Value: ", value)        
 
-    def update_table(self, db_results):
-        for i, row in enumerate(db_results):
-            for j, item in enumerate(row): 
-                self.results_table.setItem(i, j, QTableWidgetItem(item))
-
-
-    def on_text_change(self, value):
+    def do_sheet_update(self):
+        # getting current index
+        # 0 = Sightings
+        # 1 = Flowers
+        # 2 = Features
+        index = self.tabs.currentIndex()
+        if index == 0:
+            sheet = self.sightings_sheet
+        elif index == 1:
+            sheet = self.flowers_sheet
+        elif index ==2:
+            sheet = self.features_sheet
+        else:
+            raise Exception("Unrecognized sheet index:\n%s" % index)
+        sheet.update(self.query.text())
         
-        self.results_table.clearContents()
-
-        flowers = []
-
-        #Loop through the results and create a label for each flower
-        self.update_table(self.db.get_flowers_by_keyword(value))
     
     
 
