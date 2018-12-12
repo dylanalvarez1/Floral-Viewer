@@ -158,23 +158,86 @@ class DialogUpdate():
             raise Exception("Unrecognized state:\n%s" % repr(self.state))
     
     def update_clicked(self):
-        # getting the values in each field
         values = [field.text() for field in self.fields]
         if self.state == "Flower":
-            self.db.update_flower(*values)
+            self.db.add_flower(values, self.editable_col)
         elif self.state == "Feature":
-            self.db.update_feature(*values)
+            self.db.add_feature(values, self.editable_col)
         elif self.state == "Sighting":
-            self.db.update_sighting(*values)
-        self.parent.do_sheet_update()
+            self.db.add_sighting(values, self.editable_col)
         self.window.close()
     
     def show(self):
         self.window.show()
 
 
+class DialogUpdate:
+    def __init__(self, sheet_type, item_row, editable_col, window, db):
+        # not a scalable way of doing this
+        self.type = sheet_type.rstrip("s")
+        self.window = window
+        self.db = db
+        self.item_row = item_row
+        self.editable_col = editable_col
+
+        container = QWidget()
+        container_layout = QVBoxLayout()
+        top_row = QWidget()
+        top_row_layout = QHBoxLayout()
+        label = QLabel('Updating %s' % sheet_type)
+        top_row_layout.addWidget(label)
+        top_row.setLayout(top_row_layout)
+
+        form_row = QWidget()
+        self.form_row_layout = QFormLayout()
+        self.fields = []
+        form_row.setLayout(self.form_row_layout)
+
+        self.update_button = QPushButton("Update")
+        self.update_button.clicked.connect(self.update_pressed)
+        container_layout.addWidget(top_row)
+        container_layout.addWidget(form_row)
+        container_layout.addWidget(self.update_button)
+        container.setLayout(container_layout)
+        self.window.setCentralWidget(container)
+
+        #setting up the default initial values
+        self.state = "Sighting"
+        self.set_form("Name", "Person", "Location", "Sighted")
+
+    
+    def set_form(self, *label_names):
+        while len(self.form_row_layout) > 0:
+            self.form_row_layout.removeRow(0)
+        self.fields = []
+        noneditable = QPalette()
+        noneditable.setColor(QPalette.Base, QColor(53, 53, 53))
+        for col, label_name in enumerate(label_names):
+            label = QLabel(label_name)
+            field = QLineEdit()
+            if col != self.editable_col:
+                field.setReadOnly(True)
+                field.setPalette(noneditable)
+            field.setText(self.item_row[col])
+            self.fields.append(field)
+            self.form_row_layout.addRow(label, field)
+    
+    def build_form(self):
+        if self.state == "Flower":
+            self.set_form("Genus", "Species", "Common Name")
+        elif self.state == "Feature":
+            self.set_form("Location", "Class", "Latitude", "Longitude", "Map", "Elev")
+        elif self.state == "Sighting":
+            self.set_form("Name", "Person", "Location", "Sighted")
+        else:
+            raise Exception("Unrecognized state:\n%s" % repr(self.state))
+    
+    def update_pressed(self):
+        
+
 class Sheet:
     def __init__(self, title, header_labels, row_count, column_count, query_function, parent):
+        self.title = title
         self.table = QTableWidget()
         self.table.resize(600, 600)
         self.parent = parent
@@ -183,6 +246,7 @@ class Sheet:
         self.table.setRowCount(row_count)
         self.table.setColumnCount(column_count)
         self.table.setHorizontalHeaderLabels(header_labels)
+        self.header_labels = header_labels
 
         #Make table not editable
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -192,8 +256,8 @@ class Sheet:
 
         #Resize rows to fit screen
         header = self.table.horizontalHeader()
-        for index, item in enumerate(header_labels):
-            header.setSectionResizeMode(index, QHeaderView.Stretch)
+        for i in range(self.table.columnCount()):
+            header.setSectionResizeMode(i, QHeaderView.Stretch)
         self.query_function = query_function
 
     def update(self, search_term="", limit=None):
@@ -208,14 +272,15 @@ class Sheet:
                 self.table.setItem(i, j, QTableWidgetItem(str(item)))
     
     def cell_was_clicked(self, row, column):
-        
         print("Row %d and Column %d was clicked" % (row+1, column))
         self.cell_r = row+1
         self.cell_c = column
         item = self.table.item(row, column)
+        item_row = [self.table.item(i, self.cell_c).text() for i in range(self.table.columnCount())]
         print(item.text())
-        self.parent.create_update_dialog(item)
-        self.parent.dialog_update.show()
+        print(item_row)
+        # the self.title is the worst way to store the state... using an enum would be better
+        self.parent.create_update_dialog(self.title, item_row, self.cell_c)
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -260,7 +325,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(c_button)        
 
         self.dialog_create = DialogCreate(SubWindow(self), self.db)
-       
+        self.dialog_update = None
         
         f_layout = QVBoxLayout()
 
@@ -316,6 +381,11 @@ class MainWindow(QMainWindow):
     def on_button_clicked_c(self):
         self.dialog_create.show()
     
+    def create_update_dialog(self, sheet_type, item_row, col_num):
+        # close the old dialog_update window?
+        self.dialog_update = DialogUpdate(sheet_type, item_row, col_num, SubWindow(self), self.db)
+        self.dialog_update.window.show()
+    
     def on_combobox_changed(self, value):
         print("Value: ", value)        
     
@@ -334,10 +404,6 @@ class MainWindow(QMainWindow):
             2 : "Feature"
         }.get(x, "Sighting")
 
-    def create_update_dialog(self, item):
-        choice = self.getChoice(self.tabs.currentIndex())
-        print('choice:', choice)
-        self.dialog_update = DialogUpdate(SubWindow(self), self.db, item, choice, self)
 
     def do_sheet_update(self):
         # getting current index
@@ -358,8 +424,7 @@ class MainWindow(QMainWindow):
             sheet = self.features_sheet
             self.dialog_create.state = "Feature"
         else:
-            raise Exception("Unrecognized sheet index:\n%s" % index)
-        #if 
+            raise Exception("Unrecognized sheet index:\n%s" % index) 
         sheet.update(self.query.text(), self.limit_size)
         
     
