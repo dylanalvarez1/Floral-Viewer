@@ -33,8 +33,9 @@ class SubWindow(QMainWindow):
 
 
 class DialogCreate():
-    def __init__(self, window):
+    def __init__(self, window, db):
         self.window = window
+        self.db = db
         container = QWidget()
         container_layout = QVBoxLayout()
         top_row = QWidget()
@@ -55,12 +56,17 @@ class DialogCreate():
         form_row.setLayout(self.form_row_layout)
 
         self.insert_button = QPushButton("Insert")
+        self.insert_button.clicked.connect(self.insert)
         container_layout.addWidget(top_row)
         container_layout.addWidget(form_row)
         container_layout.addWidget(self.insert_button)
         container.setLayout(container_layout)
         self.window.setCentralWidget(container)
+
+        #setting up the default initial values
         self.state = "Sighting"
+        self.set_form("Name", "Person", "Location", "Sighted")
+
 
     def set_form(self, *label_names):
         while len(self.form_row_layout) > 0:
@@ -82,27 +88,29 @@ class DialogCreate():
             self.set_form("Name", "Person", "Location", "Sighted")
         else:
             raise Exception("Unrecognized state:\n%s" % repr(self.state))
-        self.show()
     
-    def insert():
+    def insert(self):
+        # getting the values in each field
+        values = [field.text() for field in self.fields]
         if self.state == "Flower":
-            # insert into flowers sheet, sanitize where appropriate
-            pass
+            self.db.add_flower(*values)
         elif self.state == "Feature":
-            # insert into features sheet, sanitize where appropriate
-            pass
+            self.db.add_feature(*values)
         elif self.state == "Sighting":
-            # insert into sighting sheet, sanitize where appropriate
-            pass
-
+            self.db.add_sighting(*values)
+        self.window.close()
+    
     def show(self):
         self.window.show()
 
-
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
+        if "db" in kwargs:
+            self.db = kwargs['db']
+        else:
+            raise Exception("No database supplied")
+        del kwargs['db']
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.db = None
         self.results = None
         self.result_label = "Results: "
 
@@ -111,13 +119,11 @@ class MainWindow(QMainWindow):
         buttons = QWidget()
         layout = QHBoxLayout()
 
-        c_button = QPushButton('New')
-        u_button = QPushButton('Update')
+        c_button = QPushButton('+')
 
         c_button.setStyleSheet('padding: 5px')
 
         c_button.clicked.connect(self.on_button_clicked_c)
-        u_button.clicked.connect(self.on_button_clicked_u)
 
         label = QLabel("Search")
         query = QLineEdit()
@@ -127,13 +133,11 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(label)
         layout.addWidget(query)
-        layout.addWidget(c_button)
-        layout.addWidget(u_button)
-        #=====
-        self.dialog_create = DialogCreate(SubWindow(self))
+        layout.addWidget(c_button)        
+
+        self.dialog_create = DialogCreate(SubWindow(self), self.db)
         self.dialog_update = SubWindow(self)
         
-        #=====
         f_layout = QVBoxLayout()
 
 
@@ -152,16 +156,12 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(container)
         self.show()
 
-    def set_db(self, db):
-        self.db = db
-
     def on_button_clicked_c(self):
         self.dialog_create.show()
     
-    def on_button_clicked_u(self):
-        self.dialog_update.show()
     def on_combobox_changed(self, value):
         print("Value: ", value)
+
     def on_text_change(self, value):
         #self.results = self.db.get_flowers_by_keyword(value)
         self.result_label = "Results: "
@@ -183,7 +183,6 @@ if __name__ == "__main__":
     with flower_db:
         qApp = QApplication([])
         set_dark_style(qApp)
-        window = MainWindow()
-        window.set_db(flower_db)
+        window = MainWindow(db=flower_db)
         qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
         qApp.exec_()
