@@ -181,6 +181,14 @@ class DialogFlowerList:
         self.db = db
         self.parent_window = parent_window
 
+        #Window icon
+        app_icon = QIcon()
+        app_icon.addFile('icon.png')
+        self.window.setWindowIcon(app_icon)
+
+        #Window label
+        self.window.setWindowTitle("Flower List")
+
         #Do not pass a title to the sheet so it knows how to handle the click behavior
         self.flowers_sheet = Sheet("", ["COMNAME"], 10, 1, self.db.get_common_names, self)
         self.table = self.flowers_sheet.table
