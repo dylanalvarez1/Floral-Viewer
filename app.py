@@ -278,18 +278,38 @@ class Sheet:
 class Login(QDialog):
     def __init__(self, parent=None):
         super(Login, self).__init__(parent)
-        self.textName = QLineEdit(self)
-        self.textPass = QLineEdit(self)
-        self.buttonLogin = QPushButton('Login', self)
-        self.buttonLogin.clicked.connect(self.handleLogin)
+        
+        self.label_user = QLabel("Username: ")
+        self.label_pass = QLabel("Password: ")
+        self.text_name = QLineEdit(self)
+        self.text_pass = QLineEdit(self)
+        self.button_login = QPushButton('Login', self)
+        self.button_login.clicked.connect(self.handle_login)
         layout = QVBoxLayout(self)
-        layout.addWidget(self.textName)
-        layout.addWidget(self.textPass)
-        layout.addWidget(self.buttonLogin)
+        
+        top_row = QWidget()
+        top_row_layout = QHBoxLayout()
+        top_row_layout.addWidget(self.label_user)
+        top_row_layout.addWidget(self.text_name)
+        top_row.setLayout(top_row_layout)
 
-    def handleLogin(self):
-        if (self.textName.text() == 'foo' and
-            self.textPass.text() == 'bar'):
+        bot_row = QWidget()
+        bot_row_layout = QHBoxLayout()
+        bot_row_layout.addWidget(self.label_pass)
+        bot_row_layout.addWidget(self.text_pass)
+        bot_row.setLayout(bot_row_layout)
+
+        title = QLabel("Login to an account to access database manager")
+
+        layout.addWidget(title)
+        layout.addWidget(top_row)
+        layout.addWidget(bot_row)
+        layout.addWidget(self.button_login)
+
+
+    def handle_login(self):
+        if (self.text_name.text() == 'foo' and
+            self.text_pass.text() == 'bar'):
             self.accept()
         else:
             QMessageBox.warning(
