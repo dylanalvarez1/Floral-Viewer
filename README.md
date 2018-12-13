@@ -2,7 +2,7 @@
 ## A flexible flower database based on PyQt5
 
 # Installation
-This project depends on (PyQt5)[https://pypi.org/project/PyQt5/5.6/]. We recommend using Python version 3.5 or greater.
+This project depends on [PyQt5](https://pypi.org/project/PyQt5/5.6/). We recommend using Python version 3.5 or greater.
 To install PyQt5, run the following command:
 > pip install PyQt5
 
