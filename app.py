@@ -288,6 +288,7 @@ class Login(QDialog):
         self.label_pass = QLabel("Password: ")
         self.text_name = QLineEdit(self)
         self.text_pass = QLineEdit(self)
+        self.text_pass.setEchoMode(QLineEdit.Password)
         self.button_login = QPushButton('Login', self)
         self.button_login.clicked.connect(self.handle_login)
         layout = QVBoxLayout(self)
