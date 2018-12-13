@@ -11,6 +11,7 @@ class FlowerDB:
     def __enter__(self):
         '''Establishes a connection upon entry'''
         self._connection = sqlite3.connect(self.filename)
+        self._connection.set_trace_callback(print)
         self._cursor = self._connection.cursor()
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -57,8 +58,8 @@ class FlowerDB:
             #return self.get_sightings()
         self._cursor.execute('''
             SELECT * FROM SIGHTINGS
-            WHERE NAME LIKE ?
-            ORDER BY SIGHTED DESC''', ('%'+keyword+'%',))
+            WHERE NAME LIKE ? OR PERSON LIKE ? OR LOCATION LIKE ? OR SIGHTED LIKE ?
+            ORDER BY SIGHTED DESC''', ('%'+keyword+'%', '%'+keyword+'%', '%'+keyword+'%', '%'+keyword+'%'))
         return self._cursor.fetchall()
 
     def get_flowers_by_keyword(self, keyword):
@@ -67,7 +68,7 @@ class FlowerDB:
             #return self.get_flowers()
         self._cursor.execute('''
             SELECT * FROM FLOWERS
-            WHERE COMNAME LIKE ?''', ('%'+keyword+'%',))
+            WHERE COMNAME LIKE ? OR GENUS LIKE ? OR SPECIES LIKE ?''', ('%'+keyword+'%', '%'+keyword+'%', '%'+keyword+'%'))
         return self._cursor.fetchall()
 
     def get_features_by_keyword(self, keyword):
@@ -76,15 +77,15 @@ class FlowerDB:
             #return self.get_location()
         self._cursor.execute('''
             SELECT * FROM FEATURES
-            WHERE LOCATION LIKE ?''',  ("%"+keyword+"%",))
+            WHERE LOCATION LIKE ? OR CLASS LIKE ? OR LATITUDE LIKE ? OR LONGITUDE LIKE ? MAP LIKE ? OR ELEV LIKE ?''',  ("%"+keyword+"%", '%'+keyword+'%', '%'+keyword+'%', '%'+keyword+'%', '%'+keyword+'%', '%'+keyword+'%'))
         
         return self._cursor.fetchall()    
 
     # TODO: error checking
     # UPDATE FUNCTIONS
     def update_flowers(self, old_row, new_row):
-        print(old_row)
-        print(new_row)
+        #print(old_row)
+        #print(new_row)
         self._cursor.execute('''
             UPDATE FLOWERS
             SET GENUS = ?, SPECIES = ?, COMNAME = ?
@@ -154,7 +155,7 @@ class FlowerDB:
         ;''', (username, password))
 
         if self._cursor.fetchall() != []:
-            print(self._cursor.fetchall())
+            #print(self._cursor.fetchall())
             return True
         return False
     
@@ -164,9 +165,7 @@ class FlowerDB:
         self.create_index_2()
         self.create_index_3()
         self.create_index_4()
-       
-       
-        
+         
     def create_index_1(self):
         self._cursor.execute('''
         CREATE INDEX IF NOT EXISTS sightings_names ON SIGHTINGS (name);
@@ -184,6 +183,13 @@ class FlowerDB:
         CREATE INDEX IF NOT EXISTS sightings_sighteds ON SIGHTINGS (sighted);
         ''')
 
+    #SQL TRIGGER COMMANDS
+    """ def create_trigger_sightings_insert(self):
+        self._cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS sightings_insert AFTER INSERT ON SIGHTINGS
+        BEGIN    
+        END;
+        ''') """
 
 if __name__ == "__main__":
     flower_db = FlowerDB("test.db")
@@ -194,13 +200,7 @@ if __name__ == "__main__":
         array = flower_db.get_all_users()
         printstr = ""
 
-        exists = flower_db.authenticate_user("test2", "44")
-        if exists:
-            print('User is in database\n')
-        else:
-            print('User is not in database\n')
-
         for i, row in enumerate(array):
             for j, item in enumerate(row): 
                 printstr += str(item) + " "
-        print(printstr)
+        #print(printstr)

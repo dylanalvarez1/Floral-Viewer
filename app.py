@@ -161,7 +161,7 @@ class DialogUpdate:
             raise Exception("Unrecognized state:\n%s" % repr(self.type))
     
     def update_pressed(self):
-        print("update pressed")
+        #print("update pressed")
         new_values = [field.text() for field in self.fields]
         if self.type == "Flower":
             self.db.update_flowers(self.item_row, new_values)
@@ -263,7 +263,7 @@ class Sheet:
     def cell_was_clicked(self, row, column):
         #Sorry Will, I know its bad but this is the only way atm i could find a way to tell if this was called from the flower list or the normal tabs
         if self.title is not "":
-            print("Row %d and Column %d was clicked" % (row+1, column))
+            #print("Row %d and Column %d was clicked" % (row+1, column))
             self.cell_r = row+1
             self.cell_c = column
             item = self.table.item(row, column)
@@ -328,9 +328,6 @@ class Login(QDialog):
 
 
     def handle_login(self):
-        print('username: ', self.text_name.text())
-        print('password: ', self.text_pass.text())
-        print('valid: ', self.db.authenticate_user(self.text_name.text(), self.text_pass.text()))
         valid_user = self.db.authenticate_user(self.text_name.text(), self.text_pass.text())
         if valid_user:
             self.accept()
@@ -456,10 +453,11 @@ class MainWindow(QMainWindow):
         self.dialog_update.window.show()
     
     def on_combobox_changed(self, value):
-        print("Value: ", value)        
+        #print("Value: ", value)  
+        pass      
     
     def update_limit(self, value):
-        print('value:', value)
+        #print('value:', value)
         if value:
             self.limit_size = int(value)
         else:
@@ -482,16 +480,16 @@ class MainWindow(QMainWindow):
         index = self.tabs.currentIndex()
         if index == 0:
             sheet = self.sightings_sheet
-            self.filter_label.setText("Filter by sighting:")
+            self.filter_label.setText("Search by sightings:")
             self.l_button.show()
             self.dialog_create.state = "Sighting"
         elif index == 1:
             sheet = self.flowers_sheet
-            self.filter_label.setText("Filter by flower:")
+            self.filter_label.setText("Search by flowers:")
             self.l_button.hide()
             self.dialog_create.state = "Flower"
         elif index ==2:
-            self.filter_label.setText("Filter by location:")
+            self.filter_label.setText("Search by flower features:")
             sheet = self.features_sheet
             self.l_button.hide()
             self.dialog_create.state = "Feature"
