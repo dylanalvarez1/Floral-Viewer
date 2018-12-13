@@ -20,6 +20,7 @@ class DatabaseError(Exception):
 
 
 class FlowerDB:
+    '''Wrapper to sqlite3 database'''
     def __init__(self, filename="flowers.db", logfile=None):
         '''Creates the connection and cursor to database at [filename]'''
         assert os.path.exists(filename)
