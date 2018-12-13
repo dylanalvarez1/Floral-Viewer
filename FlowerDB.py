@@ -132,19 +132,21 @@ class FlowerDB:
     def create_user_table(self):
         self._cursor.execute('''
         CREATE TABLE IF NOT EXISTS 
-        USERS (USERNAME VARCHAR(30) primary key, 
-        PASSWORD VARCHAR(30));
+        USERS (username VARCHAR(30) primary key, 
+        password VARCHAR(30),
+        UNIQUE(USERNAME)
+        );
         ''')
     
     def get_all_users(self):
         self._cursor.execute('''
-        SELECT USERNAME FROM USERS
+        SELECT username FROM USERS
         ''')
         return self._cursor.fetchall()
 
     def add_user(self, username, password):
         self._cursor.execute('''
-        INSERT INTO USERS
+        INSERT OR IGNORE INTO USERS
         VALUES(?, ?);
         ''', (username, password))
 

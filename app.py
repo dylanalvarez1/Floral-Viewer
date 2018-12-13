@@ -304,6 +304,9 @@ class Login(QDialog):
         #Create user table if not exists
         self.db.create_user_table()
 
+        #Create the admin account
+        self.db.add_user("admin", "password")
+
         #Create index for all attributes for sightings
         self.db.create_index_for_sightings()
 
