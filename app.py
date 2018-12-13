@@ -182,14 +182,14 @@ class DialogFlowerList:
         self.parent_window = parent_window
 
         #Do not pass a title to the sheet so it knows how to handle the click behavior
-        self.flowers_sheet = Sheet("", ["GENUS", "SPECIES", "COMNAME"], 10, 3, self.db.get_flowers_by_keyword, self)
+        self.flowers_sheet = Sheet("", ["COMNAME"], 10, 1, self.db.get_common_names, self)
         self.table = self.flowers_sheet.table
 
         container = QWidget()
         container_layout = QVBoxLayout()
         top_row = QWidget()
         top_row_layout = QHBoxLayout()
-        label = QLabel('Select a flower to search by:')
+        label = QLabel('Select a flower by its common name to search sightings by:')
         top_row_layout.addWidget(label)
         top_row.setLayout(top_row_layout)
 
@@ -215,8 +215,9 @@ class DialogFlowerList:
         self.table.setRowCount(len(results))
         self.table.clearContents()
         for i, row in enumerate(results):
-            for j, item in enumerate(row): 
-                self.table.setItem(i, j, QTableWidgetItem(str(item)))
+            for j, item in enumerate(row):
+                #the i-2 and 2 are weird offsets that make it work (changed from .setItem(i, j, ...)) 
+                self.table.setItem(i-2, 2, QTableWidgetItem(str(item)))
     
     #its called this, but it actually puts the text into
     def create_update_dialog(self, sheet_type, item_row, col_num):
