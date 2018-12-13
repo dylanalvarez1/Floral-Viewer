@@ -153,7 +153,8 @@ class FlowerDB:
         WHERE USERNAME = ? AND PASSWORD = ?
         ;''', (username, password))
 
-        if self._cursor.fetchall() is not None:
+        if self._cursor.fetchall() != []:
+            print(self._cursor.fetchall())
             return True
         return False
 
@@ -168,7 +169,7 @@ if __name__ == "__main__":
         array = flower_db.get_all_users()
         printstr = ""
 
-        exists = flower_db.authenticate_user("test2", "123")
+        exists = flower_db.authenticate_user("test2", "44")
         if exists:
             print('User is in database\n')
         else:

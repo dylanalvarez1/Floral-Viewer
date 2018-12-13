@@ -276,9 +276,14 @@ class Sheet:
             self.parent.parent_window.query.setText(self.table.item(row, column).text())
 
 class Login(QDialog):
-    def __init__(self, parent=None):
-        super(Login, self).__init__(parent)
-        
+    def __init__(self, *args, **kwargs):
+        if "db" in kwargs:
+            self.db = kwargs['db']
+        else:
+            raise Exception("No database supplied")
+        del kwargs['db']
+        super(Login, self).__init__(*args, **kwargs)
+
         self.label_user = QLabel("Username: ")
         self.label_pass = QLabel("Password: ")
         self.text_name = QLineEdit(self)
@@ -308,12 +313,15 @@ class Login(QDialog):
 
 
     def handle_login(self):
-        if (self.text_name.text() == 'foo' and
-            self.text_pass.text() == 'bar'):
+        print('username: ', self.text_name.text())
+        print('password: ', self.text_pass.text())
+        print('valid: ', self.db.authenticate_user(self.text_name.text(), self.text_pass.text()))
+        valid_user = self.db.authenticate_user(self.text_name.text(), self.text_pass.text())
+        if valid_user:
             self.accept()
         else:
             QMessageBox.warning(
-                self, 'Error', 'Bad user or password')
+                self, 'Error', 'Bad username or password')
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -486,7 +494,7 @@ if __name__ == "__main__":
     with flower_db:
         qApp = QApplication([])
         set_dark_style(qApp)
-        login = Login()
+        login = Login(db=flower_db)
         if login.exec_() == QDialog.Accepted:
             main_window = MainWindow(db=flower_db)
             qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
