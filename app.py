@@ -275,6 +275,55 @@ class Sheet:
             #Set the label of self.query (the search bar) to what you clicked
             self.parent.parent_window.query.setText(self.table.item(row, column).text())
 
+class Login(QDialog):
+    def __init__(self, *args, **kwargs):
+        if "db" in kwargs:
+            self.db = kwargs['db']
+        else:
+            raise Exception("No database supplied")
+        del kwargs['db']
+        super(Login, self).__init__(*args, **kwargs)
+
+        self.label_user = QLabel("Username: ")
+        self.label_pass = QLabel("Password: ")
+        self.text_name = QLineEdit(self)
+        self.text_pass = QLineEdit(self)
+        self.text_pass.setEchoMode(QLineEdit.Password)
+        self.button_login = QPushButton('Login', self)
+        self.button_login.clicked.connect(self.handle_login)
+        layout = QVBoxLayout(self)
+        
+        top_row = QWidget()
+        top_row_layout = QHBoxLayout()
+        top_row_layout.addWidget(self.label_user)
+        top_row_layout.addWidget(self.text_name)
+        top_row.setLayout(top_row_layout)
+
+        bot_row = QWidget()
+        bot_row_layout = QHBoxLayout()
+        bot_row_layout.addWidget(self.label_pass)
+        bot_row_layout.addWidget(self.text_pass)
+        bot_row.setLayout(bot_row_layout)
+
+        title = QLabel("Login to an account to access database manager")
+
+        layout.addWidget(title)
+        layout.addWidget(top_row)
+        layout.addWidget(bot_row)
+        layout.addWidget(self.button_login)
+
+
+    def handle_login(self):
+        print('username: ', self.text_name.text())
+        print('password: ', self.text_pass.text())
+        print('valid: ', self.db.authenticate_user(self.text_name.text(), self.text_pass.text()))
+        valid_user = self.db.authenticate_user(self.text_name.text(), self.text_pass.text())
+        if valid_user:
+            self.accept()
+        else:
+            QMessageBox.warning(
+                self, 'Error', 'Bad username or password')
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         if "db" in kwargs:
@@ -446,6 +495,8 @@ if __name__ == "__main__":
     with flower_db:
         qApp = QApplication([])
         set_dark_style(qApp)
-        main_window = MainWindow(db=flower_db)
-        qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
-        qApp.exec_()
+        login = Login(db=flower_db)
+        if login.exec_() == QDialog.Accepted:
+            main_window = MainWindow(db=flower_db)
+            qApp.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
+            qApp.exec_()
