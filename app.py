@@ -284,6 +284,14 @@ class Login(QDialog):
         del kwargs['db']
         super(Login, self).__init__(*args, **kwargs)
 
+        #Window icon
+        app_icon = QIcon()
+        app_icon.addFile('icon.png')
+        self.setWindowIcon(app_icon)
+
+        #Window label
+        self.setWindowTitle("Floral Viewer Login")
+
         #Create user table if not exists
         self.db.create_user_table()
 
@@ -432,7 +440,7 @@ class MainWindow(QMainWindow):
         container.setLayout(f_layout)
 
         self.setCentralWidget(container)
-        self.setWindowTitle("Floral-Viewer")
+        self.setWindowTitle("Floral Viewer")
         self.showMaximized()
 
     def on_button_clicked_c(self):
