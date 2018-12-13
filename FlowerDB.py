@@ -157,6 +157,15 @@ class FlowerDB:
             print(self._cursor.fetchall())
             return True
         return False
+    
+    # SQLITE INDEX COMMANDS
+    def create_index_for_sightings(self):
+        self._cursor.execute('''
+        CREATE INDEX IF NOT EXISTS sightings_names ON SIGHTINGS (name);
+        CREATE INDEX IF NOT EXISTS sightings_persons ON SIGHTINGS (person);
+        CREATE INDEX IF NOT EXISTS sightings_locations ON SIGHTINGS (location);
+        CREATE INDEX IF NOT EXISTS sightings_sighteds ON SIGHTINGS (siighted);
+        ''', (username, password))
 
 
 
