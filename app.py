@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt 
 from PyQt5.QtGui import * 
-from FlowerDB import FlowerDB
+from FlowerDB import FlowerDB, InputError, DatabaseError
 
 def set_dark_style(q_app):
     q_app.setStyle("Fusion")
@@ -29,7 +29,8 @@ class SubWindow(QMainWindow):
 
 
 class DialogCreate():
-    def __init__(self, window, db):
+    def __init__(self, parent, window, db):
+        self.parent = parent
         self.window = window
         self.db = db
 
@@ -89,13 +90,21 @@ class DialogCreate():
     def insert(self):
         # getting the values in each field
         values = [field.text() for field in self.fields]
-        if self.state == "Flower":
-            self.db.add_flower(*values)
-        elif self.state == "Feature":
-            self.db.add_feature(*values)
-        elif self.state == "Sighting":
-            self.db.add_sighting(*values)
-        self.window.close()
+        try:
+            if self.state == "Flower":
+                self.db.add_flower(*values)
+            elif self.state == "Feature":
+                self.db.add_feature(*values)
+            elif self.state == "Sighting":
+                self.db.add_sighting(*values)
+            else:
+                raise Exception("Invalid state %s" % self.state)
+            self.parent.do_sheet_update()
+            self.window.close()
+        except InputError as ex:
+            QMessageBox.warning(self.insert_button, "Input Error", "Input Error: %s" % ex)
+        except DatabaseError as ex:
+            QMessageBox.warning(self.insert_button, "Database Error", "Database Error: %s" % ex)
     
     def show(self):
         self.window.show()
@@ -163,16 +172,21 @@ class DialogUpdate:
     def update_pressed(self):
         #print("update pressed")
         new_values = [field.text() for field in self.fields]
-        if self.type == "Flower":
-            self.db.update_flowers(self.item_row, new_values)
-        elif self.type == "Feature":
-            self.db.update_features(self.item_row, new_values)
-        elif self.type == "Sighting":
-            self.db.update_sightings(self.item_row, new_values)
-        else:
-            raise Exception("Unrecognized state:\n%s" % repr(self.type))
-        self.parent_window.do_sheet_update()
-        self.window.close()
+        try:
+            if self.type == "Flower":
+                self.db.update_flowers(self.item_row, new_values)
+            elif self.type == "Feature":
+                self.db.update_features(self.item_row, new_values)
+            elif self.type == "Sighting":
+                self.db.update_sightings(self.item_row, new_values)
+            else:
+                raise Exception("Unrecognized state:\n%s" % repr(self.type))
+            self.parent_window.do_sheet_update()
+            self.window.close()
+        except InputError as ex:
+            QMessageBox.warning(self.update_button, "Input Error", "Input Error: %s" % ex)
+        except DatabaseError as ex:
+            QMessageBox.warning(self.update_button, "Database Error", "Database Error: %s" % ex)
 
 class DialogFlowerList:
     def __init__(self, window, db, parent_window):
@@ -231,7 +245,7 @@ class DialogFlowerList:
     def create_update_dialog(self, sheet_type, item_row, col_num):
         item = self.table.item(item_row, col_num)
         self.parent_window.query.setText(item.text())
-        
+
    
 class Sheet:
     def __init__(self, title, header_labels, row_count, column_count, query_function, parent):
@@ -398,7 +412,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.l_button)
         layout.addWidget(c_button)        
 
-        self.dialog_create = DialogCreate(SubWindow(self), self.db)
+        self.dialog_create = DialogCreate(self, SubWindow(self), self.db)
         self.dialog_update = None
         
         f_layout = QVBoxLayout()
@@ -501,7 +515,7 @@ class MainWindow(QMainWindow):
             self.l_button.hide()
             self.dialog_create.state = "Flower"
         elif index ==2:
-            self.filter_label.setText("Search by flower features:")
+            self.filter_label.setText("Search by features:")
             sheet = self.features_sheet
             self.l_button.hide()
             self.dialog_create.state = "Feature"
@@ -515,7 +529,7 @@ class MainWindow(QMainWindow):
         
 
 if __name__ == "__main__":
-    flower_db = FlowerDB("test.db")
+    flower_db = FlowerDB("flowers.db")
     with flower_db:
         qApp = QApplication([])
         set_dark_style(qApp)
