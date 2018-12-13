@@ -161,7 +161,7 @@ class DialogUpdate:
             raise Exception("Unrecognized state:\n%s" % repr(self.type))
     
     def update_pressed(self):
-        print("update pressed")
+        #print("update pressed")
         new_values = [field.text() for field in self.fields]
         if self.type == "Flower":
             self.db.update_flowers(self.item_row, new_values)
@@ -181,15 +181,23 @@ class DialogFlowerList:
         self.db = db
         self.parent_window = parent_window
 
+        #Window icon
+        app_icon = QIcon()
+        app_icon.addFile('icon.png')
+        self.window.setWindowIcon(app_icon)
+
+        #Window label
+        self.window.setWindowTitle("Flower List")
+
         #Do not pass a title to the sheet so it knows how to handle the click behavior
-        self.flowers_sheet = Sheet("", ["GENUS", "SPECIES", "COMNAME"], 10, 3, self.db.get_flowers_by_keyword, self)
+        self.flowers_sheet = Sheet("", ["COMNAME"], 10, 1, self.db.get_common_names, self)
         self.table = self.flowers_sheet.table
 
         container = QWidget()
         container_layout = QVBoxLayout()
         top_row = QWidget()
         top_row_layout = QHBoxLayout()
-        label = QLabel('Select a flower to search by:')
+        label = QLabel('Select a flower by its common name to search sightings by:')
         top_row_layout.addWidget(label)
         top_row.setLayout(top_row_layout)
 
@@ -215,8 +223,9 @@ class DialogFlowerList:
         self.table.setRowCount(len(results))
         self.table.clearContents()
         for i, row in enumerate(results):
-            for j, item in enumerate(row): 
-                self.table.setItem(i, j, QTableWidgetItem(str(item)))
+            for j, item in enumerate(row):
+                #the i-2 and 2 are weird offsets that make it work (changed from .setItem(i, j, ...)) 
+                self.table.setItem(i-2, 2, QTableWidgetItem(str(item)))
     
     #its called this, but it actually puts the text into
     def create_update_dialog(self, sheet_type, item_row, col_num):
@@ -263,7 +272,7 @@ class Sheet:
     def cell_was_clicked(self, row, column):
         #Sorry Will, I know its bad but this is the only way atm i could find a way to tell if this was called from the flower list or the normal tabs
         if self.title is not "":
-            print("Row %d and Column %d was clicked" % (row+1, column))
+            #print("Row %d and Column %d was clicked" % (row+1, column))
             self.cell_r = row+1
             self.cell_c = column
             item = self.table.item(row, column)
@@ -283,6 +292,14 @@ class Login(QDialog):
             raise Exception("No database supplied")
         del kwargs['db']
         super(Login, self).__init__(*args, **kwargs)
+
+        #Window icon
+        app_icon = QIcon()
+        app_icon.addFile('icon.png')
+        self.setWindowIcon(app_icon)
+
+        #Window label
+        self.setWindowTitle("Floral Viewer Login")
 
         #Create user table if not exists
         self.db.create_user_table()
@@ -320,9 +337,6 @@ class Login(QDialog):
 
 
     def handle_login(self):
-        print('username: ', self.text_name.text())
-        print('password: ', self.text_pass.text())
-        print('valid: ', self.db.authenticate_user(self.text_name.text(), self.text_pass.text()))
         valid_user = self.db.authenticate_user(self.text_name.text(), self.text_pass.text())
         if valid_user:
             self.accept()
@@ -432,7 +446,7 @@ class MainWindow(QMainWindow):
         container.setLayout(f_layout)
 
         self.setCentralWidget(container)
-        self.setWindowTitle("Floral-Viewer")
+        self.setWindowTitle("Floral Viewer")
         self.showMaximized()
 
     def on_button_clicked_c(self):
@@ -448,10 +462,11 @@ class MainWindow(QMainWindow):
         self.dialog_update.window.show()
     
     def on_combobox_changed(self, value):
-        print("Value: ", value)        
+        #print("Value: ", value)  
+        pass      
     
     def update_limit(self, value):
-        print('value:', value)
+        #print('value:', value)
         if value:
             self.limit_size = int(value)
         else:
@@ -474,16 +489,16 @@ class MainWindow(QMainWindow):
         index = self.tabs.currentIndex()
         if index == 0:
             sheet = self.sightings_sheet
-            self.filter_label.setText("Filter by sighting:")
+            self.filter_label.setText("Search by sightings:")
             self.l_button.show()
             self.dialog_create.state = "Sighting"
         elif index == 1:
             sheet = self.flowers_sheet
-            self.filter_label.setText("Filter by flower:")
+            self.filter_label.setText("Search by flowers:")
             self.l_button.hide()
             self.dialog_create.state = "Flower"
         elif index ==2:
-            self.filter_label.setText("Filter by location:")
+            self.filter_label.setText("Search by flower features:")
             sheet = self.features_sheet
             self.l_button.hide()
             self.dialog_create.state = "Feature"
