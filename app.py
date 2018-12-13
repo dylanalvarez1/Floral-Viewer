@@ -284,6 +284,12 @@ class Login(QDialog):
         del kwargs['db']
         super(Login, self).__init__(*args, **kwargs)
 
+        #Create user table if not exists
+        self.db.create_user_table()
+
+        #Create index for all attributes for sightings
+        self.db.create_index_for_sightings()
+
         self.label_user = QLabel("Username: ")
         self.label_pass = QLabel("Password: ")
         self.text_name = QLineEdit(self)
