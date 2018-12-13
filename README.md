@@ -4,7 +4,10 @@
 # Installation
 This project depends on [PyQt5](https://pypi.org/project/PyQt5/5.6/). We recommend using Python version 3.5 or greater.
 To install PyQt5, run the following command:
-> pip install PyQt5
+
+```
+pip install PyQt5
+```
 
 From there, you can run python Floral-Viewer.pyw to launch the GUI application.
 
