@@ -164,7 +164,7 @@ class FlowerDB:
         CREATE INDEX IF NOT EXISTS sightings_names ON SIGHTINGS (name);
         CREATE INDEX IF NOT EXISTS sightings_persons ON SIGHTINGS (person);
         CREATE INDEX IF NOT EXISTS sightings_locations ON SIGHTINGS (location);
-        CREATE INDEX IF NOT EXISTS sightings_sighteds ON SIGHTINGS (siighted);
+        CREATE INDEX IF NOT EXISTS sightings_sighteds ON SIGHTINGS (sighted);
         ''')
 
 
